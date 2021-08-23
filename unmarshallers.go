@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math/big"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -49,4 +50,25 @@ func (u *uintStr) UnmarshalJSON(data []byte) error {
 
 func (u uintStr) unwrap() uint64 {
 	return uint64(u)
+}
+
+type unixTimestamp time.Time
+
+func (t *unixTimestamp) UnmarshalJSON(data []byte) error {
+	var rawStr string
+	if err := json.Unmarshal(data, &rawStr); err != nil {
+		return err
+	}
+
+	unixSeconds, err := strconv.ParseInt(rawStr, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	*t = unixTimestamp(time.Unix(unixSeconds, 0))
+	return nil
+}
+
+func (t unixTimestamp) unwrap() time.Time {
+	return time.Time(t)
 }

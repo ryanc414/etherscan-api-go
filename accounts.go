@@ -606,3 +606,135 @@ func (c *AccountsClient) ListNFTTransfers(
 
 	return nftInfos, nil
 }
+
+type ListBlocksRequest struct {
+	Address common.Address
+	Type    BlockType
+}
+
+func (req *ListBlocksRequest) toParams() (map[string]string, error) {
+	blockType, err := req.Type.TryString()
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{
+		"address":   req.Address.String(),
+		"blocktype": blockType,
+	}, nil
+}
+
+type BlockType int32
+
+const (
+	blockTypeUnspecified = iota
+	BlockTypeBlocks
+	BlockTypeUncles
+)
+
+func (b BlockType) TryString() (string, error) {
+	switch b {
+	case blockTypeUnspecified:
+		return "", errors.New("block type must be specified")
+
+	case BlockTypeBlocks:
+		return "blocks", nil
+
+	case BlockTypeUncles:
+		return "uncles", nil
+
+	default:
+		return "", errors.Errorf("unknown block type %d", int32(b))
+	}
+}
+
+func (b BlockType) String() string {
+	str, err := b.TryString()
+	if err != nil {
+		panic(err)
+	}
+
+	return str
+}
+
+type BlockInfo struct {
+	BlockNumber uint64
+	Timestamp   time.Time
+	BlockReward *big.Int
+}
+
+type blockResult struct {
+	BlockNumber uintStr
+	Timestamp   unixTimestamp
+	BlockReward *bigInt
+}
+
+func (res *blockResult) toInfo() *BlockInfo {
+	return &BlockInfo{
+		BlockNumber: res.BlockNumber.unwrap(),
+		Timestamp:   res.Timestamp.unwrap(),
+		BlockReward: res.BlockReward.unwrap(),
+	}
+}
+
+func (c *AccountsClient) ListBlocksMined(
+	ctx context.Context, req *ListBlocksRequest,
+) ([]BlockInfo, error) {
+	params, err := req.toParams()
+	if err != nil {
+		return nil, err
+	}
+
+	rspData, err := c.api.get(ctx, &requestParams{
+		module: accountModule,
+		action: "getminedblocks",
+		other:  params,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var result []blockResult
+	if err := json.Unmarshal(rspData, &result); err != nil {
+		return nil, err
+	}
+
+	blocks := make([]BlockInfo, len(result))
+	for i := range result {
+		blocks[i] = *result[i].toInfo()
+	}
+
+	return blocks, nil
+}
+
+type HistoricalETHRequest struct {
+	Address     common.Address
+	BlockNumber uint64
+}
+
+func (req *HistoricalETHRequest) toParams() map[string]string {
+	return map[string]string{
+		"address": req.Address.String(),
+		"blockno": strconv.FormatUint(req.BlockNumber, 10),
+	}
+}
+
+func (c *AccountsClient) GetHistoricalETHBalance(
+	ctx context.Context, req *HistoricalETHRequest,
+) (*big.Int, error) {
+	rspData, err := c.api.get(ctx, &requestParams{
+		module: accountModule,
+		action: "balancehistory",
+		other:  req.toParams(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var result bigInt
+	if err := json.Unmarshal(rspData, &result); err != nil {
+		return nil, err
+	}
+
+	return result.unwrap(), nil
+}
