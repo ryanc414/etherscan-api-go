@@ -454,3 +454,155 @@ func unmarshalInternalTxs(rspData []byte) ([]InternalTxInfo, error) {
 
 	return txInfos, nil
 }
+
+type TokenTransfersRequest struct {
+	Address         common.Address
+	ContractAddress common.Address
+	Sort            SortingPreference
+}
+
+func (req *TokenTransfersRequest) toParams() map[string]string {
+	return map[string]string{
+		"address":         req.Address.String(),
+		"contractaddress": req.ContractAddress.String(),
+		"sort":            req.Sort.String(),
+	}
+}
+
+type TokenTransferInfo struct {
+	NormalTxInfo
+	TokenName    string
+	TokenSymbol  string
+	TokenDecimal uint32
+}
+
+type tokenTransferResult struct {
+	normalTxResult
+	TokenName    string  `json:"tokenName"`
+	TokenSymbol  string  `json:"tokenSymbol"`
+	TokenDecimal uintStr `json:"tokenDecimal"`
+}
+
+func (res *tokenTransferResult) toInfo() (*TokenTransferInfo, error) {
+	baseTx, err := res.normalTxResult.toInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	return &TokenTransferInfo{
+		NormalTxInfo: *baseTx,
+		TokenName:    res.TokenName,
+		TokenSymbol:  res.TokenSymbol,
+		TokenDecimal: uint32(res.TokenDecimal),
+	}, nil
+}
+
+func (c *AccountsClient) ListTokenTransfers(
+	ctx context.Context, req *TokenTransfersRequest,
+) ([]TokenTransferInfo, error) {
+	rspData, err := c.api.get(ctx, &requestParams{
+		module: "account",
+		action: "tokentx",
+		other:  req.toParams(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var result []tokenTransferResult
+	if err := json.Unmarshal(rspData, &result); err != nil {
+		return nil, err
+	}
+
+	tokenInfos := make([]TokenTransferInfo, len(result))
+	for i := range result {
+		info, err := result[i].toInfo()
+		if err != nil {
+			return nil, err
+		}
+
+		tokenInfos[i] = *info
+	}
+
+	return tokenInfos, nil
+}
+
+type ListNFTTransferRequest struct {
+	Address         *common.Address
+	ContractAddress *common.Address
+	Sort            SortingPreference
+}
+
+func (req *ListNFTTransferRequest) toParams() (map[string]string, error) {
+	if req.Address == nil && req.ContractAddress == nil {
+		return nil, errors.New("at least one of Address or ContractAddress must be specifide")
+	}
+
+	params := map[string]string{"sort": req.Sort.String()}
+	if req.Address != nil {
+		params["address"] = req.Address.String()
+	}
+
+	if req.ContractAddress != nil {
+		params["contractaddress"] = req.ContractAddress.String()
+	}
+
+	return params, nil
+}
+
+type NFTTransferInfo struct {
+	TokenTransferInfo
+	TokenID string
+}
+
+type nftTransferResult struct {
+	tokenTransferResult
+	TokenID string `json:"tokenID"`
+}
+
+func (res *nftTransferResult) toInfo() (*NFTTransferInfo, error) {
+	baseTx, err := res.tokenTransferResult.toInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	return &NFTTransferInfo{
+		TokenTransferInfo: *baseTx,
+		TokenID:           res.TokenID,
+	}, nil
+}
+
+func (c *AccountsClient) ListNFTTransfers(
+	ctx context.Context, req *ListNFTTransferRequest,
+) ([]NFTTransferInfo, error) {
+	params, err := req.toParams()
+	if err != nil {
+		return nil, err
+	}
+
+	rspData, err := c.api.get(ctx, &requestParams{
+		module: accountModule,
+		action: "tokennfttx",
+		other:  params,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var result []nftTransferResult
+	if err := json.Unmarshal(rspData, &result); err != nil {
+		return nil, err
+	}
+
+	nftInfos := make([]NFTTransferInfo, len(result))
+	for i := range result {
+		info, err := result[i].toInfo()
+		if err != nil {
+			return nil, err
+		}
+
+		nftInfos[i] = *info
+	}
+
+	return nftInfos, nil
+}
