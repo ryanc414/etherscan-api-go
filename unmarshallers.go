@@ -27,6 +27,10 @@ func (b *bigInt) UnmarshalJSON(data []byte) error {
 }
 
 func (b *bigInt) unwrap() *big.Int {
+	if b == nil {
+		return nil
+	}
+
 	v := big.Int(*b)
 	return &v
 }

@@ -30,7 +30,7 @@ func TestAccount(t *testing.T) {
 
 	ctx := context.Background()
 
-	t.Run("TestGetETHBalance", func(t *testing.T) {
+	t.Run("GetETHBalance", func(t *testing.T) {
 		bal, err := client.Accounts.GetETHBalance(ctx, &etherscan.ETHBalanceRequest{
 			Address: common.HexToAddress("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae"),
 			Tag:     etherscan.BlockParameterLatest,
@@ -39,7 +39,7 @@ func TestAccount(t *testing.T) {
 		assert.Equal(t, "40891626854930000000000", bal.String())
 	})
 
-	t.Run("TestMultiGetETHBalance", func(t *testing.T) {
+	t.Run("MultiGetETHBalance", func(t *testing.T) {
 		bals, err := client.Accounts.GetMultiETHBalances(ctx, &etherscan.MultiETHBalancesRequest{
 			Addresses: multiETHBalAddrs,
 			Tag:       etherscan.BlockParameterLatest,
@@ -58,7 +58,7 @@ func TestAccount(t *testing.T) {
 		}
 	})
 
-	t.Run("TestListNormalTxs", func(t *testing.T) {
+	t.Run("ListNormalTxs", func(t *testing.T) {
 		txs, err := client.Accounts.ListNormalTransactions(ctx, &etherscan.ListTxRequest{
 			Address:    common.HexToAddress("0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a"),
 			StartBlock: 0,
@@ -126,7 +126,57 @@ func TestAccount(t *testing.T) {
 			common.HexToHash("0x893c428fed019404f704cf4d9be977ed9ca01050ed93dccdd6c169422155586f"),
 			txs[1].Hash,
 		)
+	})
 
+	t.Run("ListTokenTransfers", func(t *testing.T) {
+		txs, err := client.Accounts.ListTokenTransfers(ctx, &etherscan.TokenTransfersRequest{
+			Address:         common.HexToAddress("0x4e83362442b8d1bec281594cea3050c8eb01311c"),
+			ContractAddress: common.HexToAddress("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2"),
+			Sort:            etherscan.SortingPreferenceAscending,
+		})
+		require.NoError(t, err)
+		require.Len(t, txs, 2)
+
+		assert.Equal(
+			t,
+			common.HexToHash("0xe8c208398bd5ae8e4c237658580db56a2a94dfa0ca382c99b776fa6e7d31d5b4"),
+			txs[0].Hash,
+		)
+
+		assert.Equal(
+			t,
+			common.HexToHash("0x9c82e89b7f6a4405d11c361adb6d808d27bcd9db3b04b3fb3bc05d182bbc5d6f"),
+			txs[1].Hash,
+		)
+	})
+
+	t.Run("ListNFTTransfers", func(t *testing.T) {
+		address := common.HexToAddress("0x6975be450864c02b4613023c2152ee0743572325")
+		contractAddress := common.HexToAddress("0x06012c8cf97bead5deae237070f9587f8e7a266d")
+
+		txs, err := client.Accounts.ListNFTTransfers(ctx, &etherscan.ListNFTTransferRequest{
+			Address:         &address,
+			ContractAddress: &contractAddress,
+			Sort:            etherscan.SortingPreferenceAscending,
+		})
+		require.NoError(t, err)
+
+		require.Len(t, txs, 2)
+		assert.Equal(t, "202106", txs[0].TokenID)
+		assert.Equal(t, "147739", txs[1].TokenID)
+	})
+
+	t.Run("ListMinedBlocks", func(t *testing.T) {
+		blocks, err := client.Accounts.ListBlocksMined(ctx, &etherscan.ListBlocksRequest{
+			Address: common.HexToAddress("0x9dd134d14d1e65f84b706d6f205cd5b1cd03a46b"),
+			Type:    etherscan.BlockTypeBlocks,
+		})
+		require.NoError(t, err)
+		require.Len(t, blocks, 3)
+
+		assert.Equal(t, uint64(3462296), blocks[0].BlockNumber)
+		assert.Equal(t, uint64(2691400), blocks[1].BlockNumber)
+		assert.Equal(t, uint64(2687700), blocks[2].BlockNumber)
 	})
 }
 
@@ -134,7 +184,7 @@ type mockAccountsAPI struct {
 	apiKey string
 }
 
-func (m *mockAccountsAPI) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (m mockAccountsAPI) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/api" {
 		http.Error(w, "path not found", http.StatusNotFound)
 		return
@@ -164,6 +214,15 @@ func (m *mockAccountsAPI) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case "txlistinternal":
 		m.handleInternalTxList(w, q)
 
+	case "tokentx":
+		m.handleListTokenTx(w, q)
+
+	case "tokennfttx":
+		m.handleListNFTTx(w, q)
+
+	case "getminedblocks":
+		m.handleListBlocks(w, q)
+
 	default:
 		http.Error(w, "unknown action", http.StatusNotFound)
 	}
@@ -175,7 +234,7 @@ const getBalanceResponse = `{
 	"result":"40891626854930000000000"
 }`
 
-func (m *mockAccountsAPI) handleGetBalance(w http.ResponseWriter, q url.Values) {
+func (m mockAccountsAPI) handleGetBalance(w http.ResponseWriter, q url.Values) {
 	address := common.HexToAddress(q.Get("address"))
 	if address != common.HexToAddress("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae") {
 		http.Error(w, "unknown address", http.StatusBadRequest)
@@ -219,7 +278,7 @@ var multiETHBalAddrs = []common.Address{
 	common.HexToAddress("0x198ef1ec325a96cc354c7266a038be8b5c558f67"),
 }
 
-func (m *mockAccountsAPI) handleGetMultiBalance(w http.ResponseWriter, q url.Values) {
+func (m mockAccountsAPI) handleGetMultiBalance(w http.ResponseWriter, q url.Values) {
 	addresses := strings.Split(q.Get("address"), ",")
 	if len(addresses) != 3 {
 		http.Error(w, "unexpected number of addresses", http.StatusBadRequest)
@@ -292,7 +351,7 @@ const listNormalTxResponse = `{
 	]
 }`
 
-func (m *mockAccountsAPI) handleTxList(w http.ResponseWriter, q url.Values) {
+func (m mockAccountsAPI) handleTxList(w http.ResponseWriter, q url.Values) {
 	address := common.HexToAddress(q.Get("address"))
 	if address != common.HexToAddress("0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a") {
 		http.Error(w, "unknown address", http.StatusBadRequest)
@@ -316,7 +375,7 @@ func (m *mockAccountsAPI) handleTxList(w http.ResponseWriter, q url.Values) {
 	}
 }
 
-func (m *mockAccountsAPI) handleInternalTxList(w http.ResponseWriter, q url.Values) {
+func (m mockAccountsAPI) handleInternalTxList(w http.ResponseWriter, q url.Values) {
 	if q.Get("address") != "" {
 		m.handleInternalTxListAddress(w, q)
 		return
@@ -369,7 +428,7 @@ const listInternalTxByAddressResponse = `{
 	]
 }`
 
-func (m *mockAccountsAPI) handleInternalTxListAddress(w http.ResponseWriter, q url.Values) {
+func (m mockAccountsAPI) handleInternalTxListAddress(w http.ResponseWriter, q url.Values) {
 	address := common.HexToAddress(q.Get("address"))
 	if address != common.HexToAddress("0x2c1ba59d6f58433fb1eaee7d20b26ed83bda51a3") {
 		http.Error(w, "unknown address", http.StatusBadRequest)
@@ -414,7 +473,7 @@ const listInternalTxByHashResponse = `{
 	]
 }`
 
-func (m *mockAccountsAPI) handleInternalTxListHash(w http.ResponseWriter, q url.Values) {
+func (m mockAccountsAPI) handleInternalTxListHash(w http.ResponseWriter, q url.Values) {
 	hash := common.HexToHash(q.Get("txhash"))
 	if hash != common.HexToHash("0x40eb908387324f2b575b4879cd9d7188f69c8fc9d87c901b9e2daaea4b442170") {
 		http.Error(w, "unknown tx hash", http.StatusBadRequest)
@@ -467,7 +526,7 @@ const listInternalTxBlockRangeResponse = `{
 	]
 }`
 
-func (m *mockAccountsAPI) handleInternalTxListBlockRange(w http.ResponseWriter, q url.Values) {
+func (m mockAccountsAPI) handleInternalTxListBlockRange(w http.ResponseWriter, q url.Values) {
 	if q.Get("startblock") != "0" || q.Get("endblock") != "2702578" {
 		http.Error(w, "unexpected block parameters", http.StatusBadRequest)
 		return
@@ -480,6 +539,195 @@ func (m *mockAccountsAPI) handleInternalTxListBlockRange(w http.ResponseWriter, 
 
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte(listInternalTxBlockRangeResponse))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+const listTokenTxResponse = `{
+	"status":"1",
+	"message":"OK",
+	"result":[
+	   {
+		  "blockNumber":"4730207",
+		  "timeStamp":"1513240363",
+		  "hash":"0xe8c208398bd5ae8e4c237658580db56a2a94dfa0ca382c99b776fa6e7d31d5b4",
+		  "nonce":"406",
+		  "blockHash":"0x022c5e6a3d2487a8ccf8946a2ffb74938bf8e5c8a3f6d91b41c56378a96b5c37",
+		  "from":"0x642ae78fafbb8032da552d619ad43f1d81e4dd7c",
+		  "contractAddress":"0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
+		  "to":"0x4e83362442b8d1bec281594cea3050c8eb01311c",
+		  "value":"5901522149285533025181",
+		  "tokenName":"Maker",
+		  "tokenSymbol":"MKR",
+		  "tokenDecimal":"18",
+		  "transactionIndex":"81",
+		  "gas":"940000",
+		  "gasPrice":"32010000000",
+		  "gasUsed":"77759",
+		  "cumulativeGasUsed":"2523379",
+		  "input":"deprecated",
+		  "confirmations":"7968350"
+	   },
+	   {
+		  "blockNumber":"4764973",
+		  "timeStamp":"1513764636",
+		  "hash":"0x9c82e89b7f6a4405d11c361adb6d808d27bcd9db3b04b3fb3bc05d182bbc5d6f",
+		  "nonce":"428",
+		  "blockHash":"0x87a4d04a6d8fce7a149e9dc528b88dc0c781a87456910c42984bdc15930a2cac",
+		  "from":"0x4e83362442b8d1bec281594cea3050c8eb01311c",
+		  "contractAddress":"0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
+		  "to":"0x69076e44a9c70a67d5b79d95795aba299083c275",
+		  "value":"132520488141080",
+		  "tokenName":"Maker",
+		  "tokenSymbol":"MKR",
+		  "tokenDecimal":"18",
+		  "transactionIndex":"167",
+		  "gas":"940000",
+		  "gasPrice":"35828000000",
+		  "gasUsed":"127593",
+		  "cumulativeGasUsed":"6315818",
+		  "input":"deprecated",
+		  "confirmations":"7933584"
+	   }
+	]
+}`
+
+func (m mockAccountsAPI) handleListTokenTx(w http.ResponseWriter, q url.Values) {
+	contractAddress := common.HexToAddress(q.Get("contractaddress"))
+	if contractAddress != common.HexToAddress("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2") {
+		http.Error(w, "unknown contractaddress", http.StatusBadRequest)
+		return
+	}
+
+	address := common.HexToAddress(q.Get("address"))
+	if address != common.HexToAddress("0x4e83362442b8d1bec281594cea3050c8eb01311c") {
+		http.Error(w, "unknown address", http.StatusBadRequest)
+		return
+	}
+
+	if q.Get("sort") != "asc" {
+		http.Error(w, "unexpected sort param", http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte(listTokenTxResponse))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+const listNFTTxResponse = `{
+	"status":"1",
+	"message":"OK",
+	"result":[
+	   {
+		  "blockNumber":"4708120",
+		  "timeStamp":"1512907118",
+		  "hash":"0x031e6968a8de362e4328d60dcc7f72f0d6fc84284c452f63176632177146de66",
+		  "nonce":"0",
+		  "blockHash":"0x4be19c278bfaead5cb0bc9476fa632e2447f6e6259e0303af210302d22779a24",
+		  "from":"0xb1690c08e213a35ed9bab7b318de14420fb57d8c",
+		  "contractAddress":"0x06012c8cf97bead5deae237070f9587f8e7a266d",
+		  "to":"0x6975be450864c02b4613023c2152ee0743572325",
+		  "tokenID":"202106",
+		  "tokenName":"CryptoKitties",
+		  "tokenSymbol":"CK",
+		  "tokenDecimal":"0",
+		  "transactionIndex":"81",
+		  "gas":"158820",
+		  "gasPrice":"40000000000",
+		  "gasUsed":"60508",
+		  "cumulativeGasUsed":"4880352",
+		  "input":"deprecated",
+		  "confirmations":"7990490"
+	   },
+	   {
+		  "blockNumber":"4708161",
+		  "timeStamp":"1512907756",
+		  "hash":"0x9626e7064b68b5463cf677e10815a0b394645a0bfa245f26a2de6074324e83ff",
+		  "nonce":"1",
+		  "blockHash":"0xe1c6cbc39a723496f4cbc3e70241012854f2e88b4d2d5f339d8f0a4a1cc406d8",
+		  "from":"0xb1690c08e213a35ed9bab7b318de14420fb57d8c",
+		  "contractAddress":"0x06012c8cf97bead5deae237070f9587f8e7a266d",
+		  "to":"0x6975be450864c02b4613023c2152ee0743572325",
+		  "tokenID":"147739",
+		  "tokenName":"CryptoKitties",
+		  "tokenSymbol":"CK",
+		  "tokenDecimal":"0",
+		  "transactionIndex":"41",
+		  "gas":"135963",
+		  "gasPrice":"40000000000",
+		  "gasUsed":"45508",
+		  "cumulativeGasUsed":"3359342",
+		  "input":"deprecated",
+		  "confirmations":"7990449"
+	   }
+	]
+}`
+
+func (m mockAccountsAPI) handleListNFTTx(w http.ResponseWriter, q url.Values) {
+	contractAddress := common.HexToAddress(q.Get("contractaddress"))
+	if contractAddress != common.HexToAddress("0x06012c8cf97bead5deae237070f9587f8e7a266d") {
+		http.Error(w, "unknown contractaddress", http.StatusBadRequest)
+		return
+	}
+
+	address := common.HexToAddress(q.Get("address"))
+	if address != common.HexToAddress("0x6975be450864c02b4613023c2152ee0743572325") {
+		http.Error(w, "unknown address", http.StatusBadRequest)
+		return
+	}
+
+	if q.Get("sort") != "asc" {
+		http.Error(w, "unexpected sort param", http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte(listNFTTxResponse))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+const listBlocksResponse = `{
+	"status":"1",
+	"message":"OK",
+	"result":[
+	   {
+		  "blockNumber":"3462296",
+		  "timeStamp":"1491118514",
+		  "blockReward":"5194770940000000000"
+	   },
+	   {
+		  "blockNumber":"2691400",
+		  "timeStamp":"1480072029",
+		  "blockReward":"5086562212310617100"
+	   },
+	   {
+		  "blockNumber":"2687700",
+		  "timeStamp":"1480018852",
+		  "blockReward":"5003251945421042780"
+	   }
+	]
+}`
+
+func (m mockAccountsAPI) handleListBlocks(w http.ResponseWriter, q url.Values) {
+	address := common.HexToAddress(q.Get("address"))
+	if address != common.HexToAddress("0x9dd134d14d1e65f84b706d6f205cd5b1cd03a46b") {
+		http.Error(w, "unknown address", http.StatusBadRequest)
+		return
+	}
+
+	if q.Get("blocktype") != "blocks" {
+		http.Error(w, "unexpected blocktype", http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte(listBlocksResponse))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
