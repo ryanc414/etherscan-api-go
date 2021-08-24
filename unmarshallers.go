@@ -38,6 +38,9 @@ func (u *uintStr) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &rawStr); err != nil {
 		return err
 	}
+	if rawStr == "" {
+		return nil
+	}
 
 	val, err := strconv.ParseUint(rawStr, 10, 64)
 	if err != nil {
