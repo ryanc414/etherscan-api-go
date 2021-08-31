@@ -79,3 +79,27 @@ func (t *unixTimestamp) UnmarshalJSON(data []byte) error {
 func (t unixTimestamp) unwrap() time.Time {
 	return time.Time(t)
 }
+
+type floatStr float64
+
+func (f *floatStr) UnmarshalJSON(data []byte) error {
+	var rawStr string
+	if err := json.Unmarshal(data, &rawStr); err != nil {
+		return err
+	}
+	if rawStr == "" {
+		return nil
+	}
+
+	val, err := strconv.ParseFloat(rawStr, 64)
+	if err != nil {
+		return err
+	}
+
+	*f = floatStr(val)
+	return nil
+}
+
+func (f floatStr) unwrap() float64 {
+	return float64(f)
+}

@@ -202,17 +202,26 @@ const (
 	SortingPreferenceDescending
 )
 
-func (s SortingPreference) String() string {
+func (s SortingPreference) tryString() (string, error) {
 	switch s {
 	case SortingPreferenceAscending:
-		return "asc"
+		return "asc", nil
 
 	case SortingPreferenceDescending:
-		return "desc"
+		return "desc", nil
 
 	default:
-		panic(fmt.Sprintf("unknown sorting preference %d", int32(s)))
+		return "", errors.Errorf("unknown sorting preference %d", int32(s))
 	}
+}
+
+func (s SortingPreference) String() string {
+	str, err := s.tryString()
+	if err != nil {
+		panic(err)
+	}
+
+	return str
 }
 
 type TransactionInfo struct {
