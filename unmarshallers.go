@@ -1,11 +1,14 @@
 package etherscan
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"math/big"
 	"strconv"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 )
 
@@ -27,12 +30,24 @@ func (b *bigInt) UnmarshalJSON(data []byte) error {
 }
 
 func (b *bigInt) unwrap() *big.Int {
-	if b == nil {
-		return nil
+	return (*big.Int)(b)
+}
+
+type hexBigInt big.Int
+
+func (b *hexBigInt) UnmarshalJSON(data []byte) error {
+	var hex string
+	if err := json.Unmarshal(data, &hex); err != nil {
+		return err
 	}
 
-	v := big.Int(*b)
-	return &v
+	val := new(big.Int).SetBytes(common.Hex2Bytes(hex))
+	*b = hexBigInt(*val)
+	return nil
+}
+
+func (b *hexBigInt) unwrap() *big.Int {
+	return (*big.Int)(b)
 }
 
 type uintStr uint64
@@ -59,6 +74,29 @@ func (u uintStr) unwrap() uint64 {
 	return uint64(u)
 }
 
+type hexUint uint64
+
+func (u *hexUint) UnmarshalJSON(data []byte) error {
+	var hex string
+	if err := json.Unmarshal(data, &hex); err != nil {
+		return err
+	}
+
+	buf := bytes.NewBuffer(common.Hex2BytesFixed(hex, 64))
+
+	var val uint64
+	if err := binary.Read(buf, binary.BigEndian, &val); err != nil {
+		return err
+	}
+
+	*u = hexUint(val)
+	return nil
+}
+
+func (u hexUint) unwrap() uint64 {
+	return uint64(u)
+}
+
 type unixTimestamp time.Time
 
 func (t *unixTimestamp) UnmarshalJSON(data []byte) error {
@@ -77,6 +115,30 @@ func (t *unixTimestamp) UnmarshalJSON(data []byte) error {
 }
 
 func (t unixTimestamp) unwrap() time.Time {
+	return time.Time(t)
+}
+
+type hexTimestamp time.Time
+
+func (t *hexTimestamp) UnmarshalJSON(data []byte) error {
+	var hex string
+	if err := json.Unmarshal(data, &hex); err != nil {
+		return err
+	}
+
+	buf := bytes.NewBuffer(common.Hex2BytesFixed(hex, 64))
+
+	var unixSeconds uint64
+	if err := binary.Read(buf, binary.BigEndian, &unixSeconds); err != nil {
+		return err
+	}
+
+	*t = hexTimestamp(time.Unix(int64(unixSeconds), 0))
+	return nil
+
+}
+
+func (t hexTimestamp) unwrap() time.Time {
 	return time.Time(t)
 }
 
