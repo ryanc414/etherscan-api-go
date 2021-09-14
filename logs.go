@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
 )
 
@@ -151,16 +152,16 @@ type LogResponse struct {
 }
 
 type logResult struct {
-	Address          string       `json:"address"`
-	BlockNumber      hexUint      `json:"blockNumber"`
-	Data             string       `json:"data"`
-	GasPrice         *hexBigInt   `json:"gasPrice"`
-	GasUsed          *hexBigInt   `json:"gasUsed"`
-	LogIndex         hexUint      `json:"logIndex"`
-	Timestamp        hexTimestamp `json:"timeStamp"`
-	Topics           []string     `json:"topics"`
-	TransactionHash  string       `json:"transactionHash"`
-	TransactionIndex hexUint      `json:"transactionIndex"`
+	Address          string         `json:"address"`
+	BlockNumber      hexutil.Uint64 `json:"blockNumber"`
+	Data             string         `json:"data"`
+	GasPrice         *hexutil.Big   `json:"gasPrice"`
+	GasUsed          *hexutil.Big   `json:"gasUsed"`
+	LogIndex         hexUint        `json:"logIndex"`
+	Timestamp        hexTimestamp   `json:"timeStamp"`
+	Topics           []string       `json:"topics"`
+	TransactionHash  string         `json:"transactionHash"`
+	TransactionIndex hexUint        `json:"transactionIndex"`
 }
 
 func (res *logResult) toLog() LogResponse {
@@ -171,10 +172,10 @@ func (res *logResult) toLog() LogResponse {
 
 	return LogResponse{
 		Address:          common.HexToAddress(res.Address),
-		BlockNumber:      res.BlockNumber.unwrap(),
+		BlockNumber:      uint64(res.BlockNumber),
 		Data:             common.Hex2Bytes(res.Data),
-		GasPrice:         res.GasPrice.unwrap(),
-		GasUsed:          res.GasUsed.unwrap(),
+		GasPrice:         res.GasPrice.ToInt(),
+		GasUsed:          res.GasUsed.ToInt(),
 		LogIndex:         uint32(res.LogIndex),
 		Timestamp:        res.Timestamp.unwrap(),
 		Topics:           topics,
