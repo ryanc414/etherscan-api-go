@@ -72,7 +72,7 @@ func (r apiClient) get(ctx context.Context, params *requestParams) (json.RawMess
 		return nil, err
 	}
 
-	if rspBody.Status != rspStatusOK {
+	if rspBody.Status != "" && rspBody.Status != rspStatusOK {
 		return nil, newResponseErr(&rspBody)
 	}
 

@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/google/uuid"
 	"github.com/ryanc414/etherscan-api-go"
 	"github.com/stretchr/testify/assert"
@@ -77,7 +79,7 @@ func TestProxy(t *testing.T) {
 	t.Run("GetBlockTransactionCount", func(t *testing.T) {
 		txCount, err := client.Proxy.GetBlockTransactionCountByNumber(ctx, 1112952)
 		require.NoError(t, err)
-		assert.Equal(t, 3, txCount)
+		assert.Equal(t, uint32(3), txCount)
 	})
 
 	t.Run("GetTransactionByHash", func(t *testing.T) {
@@ -109,10 +111,10 @@ func TestProxy(t *testing.T) {
 	})
 
 	t.Run("SendRawTransaction", func(t *testing.T) {
-		result, err := client.Proxy.SendRawTransaction(ctx, common.Hex2Bytes("0xf904808000831cfde080"))
+		result, err := client.Proxy.SendRawTransaction(ctx, hexutil.MustDecode("0xf904808000831cfde080"))
 		require.NoError(t, err)
 
-		expectedResult := common.Hex2Bytes("0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331")
+		expectedResult := common.HexToHash("0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331")
 		assert.Equal(t, expectedResult, result)
 	})
 
@@ -131,12 +133,12 @@ func TestProxy(t *testing.T) {
 	t.Run("Call", func(t *testing.T) {
 		result, err := client.Proxy.Call(ctx, &etherscan.CallRequest{
 			To:   common.HexToAddress("0xAEEF46DB4855E25702F8237E8f403FddcaF931C0"),
-			Data: common.HexToHash("0x70a08231000000000000000000000000e16359506c028e51f16be38986ec5746251e9724"),
+			Data: hexutil.MustDecode("0x70a08231000000000000000000000000e16359506c028e51f16be38986ec5746251e9724"),
 			Tag:  etherscan.BlockParameterLatest,
 		})
 		require.NoError(t, err)
 
-		expectedResult := common.Hex2Bytes("0x00000000000000000000000000000000000000000000000000601d8888141c00")
+		expectedResult := hexutil.MustDecode("0x00000000000000000000000000000000000000000000000000601d8888141c00")
 		assert.Equal(t, expectedResult, result)
 	})
 
@@ -147,7 +149,7 @@ func TestProxy(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		expectedResult := common.Hex2Bytes("0x3660008037602060003660003473273930d21e01ee25e4c219b63259d214872220a261235a5a03f21560015760206000f3")
+		expectedResult := hexutil.MustDecode("0x3660008037602060003660003473273930d21e01ee25e4c219b63259d214872220a261235a5a03f21560015760206000f3")
 		assert.Equal(t, expectedResult, result)
 	})
 
@@ -159,7 +161,7 @@ func TestProxy(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		expectedResult := common.Hex2Bytes("0x0000000000000000000000003d0768da09ce77d25e2d998e6a7b6ed4b9116c2d")
+		expectedResult := hexutil.MustDecode("0x0000000000000000000000003d0768da09ce77d25e2d998e6a7b6ed4b9116c2d")
 		assert.Equal(t, expectedResult, result)
 	})
 
@@ -173,7 +175,7 @@ func TestProxy(t *testing.T) {
 
 	t.Run("EstimateGas", func(t *testing.T) {
 		gas, err := client.Proxy.EstimateGas(ctx, &etherscan.EstimateGasRequest{
-			Data:     common.Hex2Bytes("0x4e71d92d"),
+			Data:     hexutil.MustDecode("0x4e71d92d"),
 			To:       common.HexToAddress("0xf0160428a8552ac9bb7e050d90eeade4ddd52843"),
 			Value:    big.NewInt(65314),
 			GasPrice: big.NewInt(21971876044),
@@ -233,6 +235,9 @@ func (m mockProxyAPI) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case "eth_getTransactionCount":
 		m.handleGetTransactionCount(w, q)
 
+	case "eth_sendRawTransaction":
+		m.handleSendRawTransaction(w, q)
+
 	case "eth_getTransactionReceipt":
 		m.handleGetTransactionReceipt(w, q)
 
@@ -264,7 +269,9 @@ const blockNumberResponse = `{
 
 func (m mockProxyAPI) handleBlockNumber(w http.ResponseWriter, _ url.Values) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(blockNumberResponse))
+	if _, err := w.Write([]byte(blockNumberResponse)); err != nil {
+		panic(err)
+	}
 }
 
 const blockByNumberFullResponse = `{
@@ -342,7 +349,7 @@ const blockByNumberSummaryResponse = `{
 }`
 
 func (m mockProxyAPI) handleGetBlockByNumber(w http.ResponseWriter, q url.Values) {
-	if q.Get("tag") != "0x10d4f" {
+	if strings.ToLower(q.Get("tag")) != "0x10d4f" {
 		http.Error(w, "unexpected tag", http.StatusBadRequest)
 		return
 	}
@@ -390,7 +397,7 @@ const uncleByBlockNumberAndIndexResponse = `{
 }`
 
 func (m mockProxyAPI) handleGetUncle(w http.ResponseWriter, q url.Values) {
-	if q.Get("tag") != "0xC63276" {
+	if strings.ToLower(q.Get("tag")) != "0xc63276" {
 		http.Error(w, "unexpected tag", http.StatusBadRequest)
 		return
 	}
@@ -411,7 +418,7 @@ const blockTransactionCountResponse = `{
 }`
 
 func (m mockProxyAPI) handleGetBlockTxCount(w http.ResponseWriter, q url.Values) {
-	if q.Get("tag") != "0x10FB78" {
+	if strings.ToLower(q.Get("tag")) != "0x10fb78" {
 		http.Error(w, "unexpected tag", http.StatusBadRequest)
 		return
 	}
@@ -496,12 +503,12 @@ const txByNumberResponse = `{
 }`
 
 func (m mockProxyAPI) handleGetTxByNumber(w http.ResponseWriter, q url.Values) {
-	if q.Get("tag") != "0xC6331D" {
+	if strings.ToLower(q.Get("tag")) != "0xc6331d" {
 		http.Error(w, "unexpected tag", http.StatusBadRequest)
 		return
 	}
 
-	if q.Get("index") != "0x11A" {
+	if strings.ToLower(q.Get("index")) != "0x11a" {
 		http.Error(w, "unexpected index", http.StatusBadRequest)
 		return
 	}
@@ -530,6 +537,22 @@ func (m mockProxyAPI) handleGetTransactionCount(w http.ResponseWriter, q url.Val
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(getTxCountResponse))
+}
+
+const sendRawTxResponse = `{
+	"id":1,
+	"jsonrpc": "2.0",
+	"result": "0x0e670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+}`
+
+func (m mockProxyAPI) handleSendRawTransaction(w http.ResponseWriter, q url.Values) {
+	if hex := strings.ToLower(q.Get("hex")); hex != "0xf904808000831cfde080" {
+		http.Error(w, "unexpected hex", http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(sendRawTxResponse))
 }
 
 const getTxReceiptResponse = `{
@@ -594,7 +617,7 @@ func (m mockProxyAPI) handleCall(w http.ResponseWriter, q url.Values) {
 		return
 	}
 
-	if q.Get("data") != "0x70a08231000000000000000000000000e16359506c028e51f16be38986ec5746251e9724" {
+	if strings.ToLower(q.Get("data")) != "0x70a08231000000000000000000000000e16359506c028e51f16be38986ec5746251e9724" {
 		http.Error(w, "unexpected data", http.StatusBadRequest)
 		return
 	}
@@ -675,7 +698,7 @@ func (m mockProxyAPI) handleEstimateGas(w http.ResponseWriter, q url.Values) {
 		return
 	}
 
-	address := common.HexToAddress(q.Get("address"))
+	address := common.HexToAddress(q.Get("to"))
 	if address != common.HexToAddress("0xf0160428a8552ac9bb7e050d90eeade4ddd52843") {
 		http.Error(w, "unexpected address", http.StatusBadRequest)
 		return
