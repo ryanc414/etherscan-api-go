@@ -193,7 +193,7 @@ func (c *ProxyClient) GetBlockByNumberSummary(
 }
 
 type BlockNumberAndIndex struct {
-	Number uint64
+	Number uint64 `etherscan:"tag"`
 	Index  uint32
 }
 
