@@ -2,7 +2,6 @@ package etherscan
 
 import (
 	"fmt"
-	"log"
 	"math/big"
 	"reflect"
 	"strconv"
@@ -26,7 +25,10 @@ func marshalRequest(req interface{}) map[string]string {
 		field := reqType.Field(i)
 		info := parseTag(field)
 		key := keyName(field, &info)
-		res[key] = formatValue(reqVal.Field(i), &info)
+		val := formatValue(reqVal.Field(i), &info)
+		if val != "" {
+			res[key] = val
+		}
 	}
 
 	return res
@@ -58,6 +60,22 @@ func formatValue(fieldVal reflect.Value, info *tagInfo) string {
 
 		return strconv.FormatUint(fieldVal.Uint(), 10)
 
+	case reflect.Slice:
+		elems := make([]string, fieldVal.Len())
+		for i := 0; i < fieldVal.Len(); i++ {
+			el := fieldVal.Index(i)
+			elems[i] = fmt.Sprint(el)
+		}
+
+		return strings.Join(elems, ",")
+
+	case reflect.Ptr:
+		if fieldVal.IsNil() {
+			return ""
+		}
+
+		return fmt.Sprint(fieldVal.Elem().Interface())
+
 	default:
 		return fmt.Sprint(fieldVal.Interface())
 	}
@@ -70,7 +88,6 @@ type tagInfo struct {
 
 func parseTag(fieldType reflect.StructField) tagInfo {
 	rawTag := fieldType.Tag.Get("etherscan")
-	log.Print("rawTag: ", rawTag)
 	items := strings.Split(rawTag, ",")
 
 	var info tagInfo

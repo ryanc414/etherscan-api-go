@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -24,29 +23,12 @@ type ETHBalanceRequest struct {
 	Tag     BlockParameter
 }
 
-func (req *ETHBalanceRequest) toParams() (map[string]string, error) {
-	if req.Address == (common.Address{}) {
-		return nil, errors.New("address is required")
-	}
-
-	tag := req.Tag
-	if tag == blockParameterUnspecified {
-		tag = BlockParameterLatest
-	}
-
-	return map[string]string{
-		"address": req.Address.String(),
-		"tag":     tag.String(),
-	}, nil
-}
-
 type BlockParameter int32
 
 const (
-	blockParameterUnspecified = iota
+	BlockParameterLatest = iota
 	BlockParameterEarliest
 	BlockParameterPending
-	BlockParameterLatest
 )
 
 func (b BlockParameter) String() string {
@@ -68,15 +50,10 @@ func (b BlockParameter) String() string {
 func (c *AccountsClient) GetETHBalance(
 	ctx context.Context, req *ETHBalanceRequest,
 ) (*big.Int, error) {
-	params, err := req.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: accountModule,
 		action: "balance",
-		other:  params,
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -91,26 +68,8 @@ func (c *AccountsClient) GetETHBalance(
 }
 
 type MultiETHBalancesRequest struct {
-	Addresses []common.Address
+	Addresses []common.Address `etherscan:"address"`
 	Tag       BlockParameter
-}
-
-func (req *MultiETHBalancesRequest) toParams() (map[string]string, error) {
-	if len(req.Addresses) == 0 {
-		return nil, errors.New("Addresses must be provided")
-	}
-
-	joinedAddrs := joinAddresses(req.Addresses)
-
-	tag := req.Tag
-	if tag == blockParameterUnspecified {
-		tag = BlockParameterLatest
-	}
-
-	return map[string]string{
-		"address": joinedAddrs,
-		"tag":     tag.String(),
-	}, nil
 }
 
 type MultiBalanceResponse struct {
@@ -133,15 +92,10 @@ func (r *multiBalanceResult) toResponse() (*MultiBalanceResponse, error) {
 func (c *AccountsClient) GetMultiETHBalances(
 	ctx context.Context, req *MultiETHBalancesRequest,
 ) ([]MultiBalanceResponse, error) {
-	params, err := req.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: accountModule,
 		action: "balancemulti",
-		other:  params,
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -165,15 +119,6 @@ func (c *AccountsClient) GetMultiETHBalances(
 	return response, nil
 }
 
-func joinAddresses(addresses []common.Address) string {
-	addrStrs := make([]string, len(addresses))
-	for i := range addresses {
-		addrStrs[i] = addresses[i].String()
-	}
-
-	return strings.Join(addrStrs, ",")
-}
-
 type ListTxRequest struct {
 	Address    common.Address
 	StartBlock uint64
@@ -181,47 +126,24 @@ type ListTxRequest struct {
 	Sort       SortingPreference
 }
 
-func (req *ListTxRequest) toParams() (map[string]string, error) {
-	if req.Address == (common.Address{}) {
-		return nil, errors.New("address must be specified")
-	}
-
-	return map[string]string{
-		"address":    req.Address.String(),
-		"startblock": strconv.FormatUint(req.StartBlock, 10),
-		"endblock":   strconv.FormatUint(req.EndBlock, 10),
-		"sort":       req.Sort.String(),
-	}, nil
-}
-
 type SortingPreference int32
 
 const (
-	sortingPreferenceUnspecified = iota
-	SortingPreferenceAscending
+	SortingPreferenceAscending = iota
 	SortingPreferenceDescending
 )
 
-func (s SortingPreference) tryString() (string, error) {
+func (s SortingPreference) String() string {
 	switch s {
 	case SortingPreferenceAscending:
-		return "asc", nil
+		return "asc"
 
 	case SortingPreferenceDescending:
-		return "desc", nil
+		return "desc"
 
 	default:
-		return "", errors.Errorf("unknown sorting preference %d", int32(s))
+		panic(fmt.Sprintf("unknown sorting preference %d", int32(s)))
 	}
-}
-
-func (s SortingPreference) String() string {
-	str, err := s.tryString()
-	if err != nil {
-		panic(err)
-	}
-
-	return str
 }
 
 type TransactionInfo struct {
@@ -348,15 +270,10 @@ func (tx *internalTxResult) toInfo() (*InternalTxInfo, error) {
 func (c *AccountsClient) ListNormalTransactions(
 	ctx context.Context, req *ListTxRequest,
 ) ([]NormalTxInfo, error) {
-	params, err := req.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: accountModule,
 		action: "txlist",
-		other:  params,
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -383,15 +300,10 @@ func (c *AccountsClient) ListNormalTransactions(
 func (c *AccountsClient) ListInternalTransactions(
 	ctx context.Context, req *ListTxRequest,
 ) ([]InternalTxInfo, error) {
-	params, err := req.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: accountModule,
 		action: "txlistinternal",
-		other:  params,
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -421,14 +333,6 @@ type BlockRangeRequest struct {
 	Sort       SortingPreference
 }
 
-func (req *BlockRangeRequest) toParams() map[string]string {
-	return map[string]string{
-		"startblock": strconv.FormatUint(req.StartBlock, 10),
-		"endblock":   strconv.FormatUint(req.EndBlock, 10),
-		"sort":       req.Sort.String(),
-	}
-}
-
 func (c *AccountsClient) GetInternalTxsByBlockRange(
 	ctx context.Context,
 	req *BlockRangeRequest,
@@ -436,7 +340,7 @@ func (c *AccountsClient) GetInternalTxsByBlockRange(
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: accountModule,
 		action: "txlistinternal",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -468,14 +372,6 @@ type TokenTransfersRequest struct {
 	Address         common.Address
 	ContractAddress common.Address
 	Sort            SortingPreference
-}
-
-func (req *TokenTransfersRequest) toParams() map[string]string {
-	return map[string]string{
-		"address":         req.Address.String(),
-		"contractaddress": req.ContractAddress.String(),
-		"sort":            req.Sort.String(),
-	}
 }
 
 type TokenTransferInfo struct {
@@ -512,7 +408,7 @@ func (c *AccountsClient) ListTokenTransfers(
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: "account",
 		action: "tokentx",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -542,23 +438,6 @@ type ListNFTTransferRequest struct {
 	Sort            SortingPreference
 }
 
-func (req *ListNFTTransferRequest) toParams() (map[string]string, error) {
-	if req.Address == nil && req.ContractAddress == nil {
-		return nil, errors.New("at least one of Address or ContractAddress must be specifide")
-	}
-
-	params := map[string]string{"sort": req.Sort.String()}
-	if req.Address != nil {
-		params["address"] = req.Address.String()
-	}
-
-	if req.ContractAddress != nil {
-		params["contractaddress"] = req.ContractAddress.String()
-	}
-
-	return params, nil
-}
-
 type NFTTransferInfo struct {
 	TokenTransferInfo
 	TokenID string
@@ -584,15 +463,14 @@ func (res *nftTransferResult) toInfo() (*NFTTransferInfo, error) {
 func (c *AccountsClient) ListNFTTransfers(
 	ctx context.Context, req *ListNFTTransferRequest,
 ) ([]NFTTransferInfo, error) {
-	params, err := req.toParams()
-	if err != nil {
-		return nil, err
+	if req.Address == nil && req.ContractAddress == nil {
+		return nil, errors.New("at least one of Address or ContractAddress must be specifide")
 	}
 
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: accountModule,
 		action: "tokennfttx",
-		other:  params,
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -618,52 +496,27 @@ func (c *AccountsClient) ListNFTTransfers(
 
 type ListBlocksRequest struct {
 	Address common.Address
-	Type    BlockType
-}
-
-func (req *ListBlocksRequest) toParams() (map[string]string, error) {
-	blockType, err := req.Type.TryString()
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]string{
-		"address":   req.Address.String(),
-		"blocktype": blockType,
-	}, nil
+	Type    BlockType `etherscan:"blocktype"`
 }
 
 type BlockType int32
 
 const (
-	blockTypeUnspecified = iota
-	BlockTypeBlocks
+	BlockTypeBlocks = iota
 	BlockTypeUncles
 )
 
-func (b BlockType) TryString() (string, error) {
+func (b BlockType) String() string {
 	switch b {
-	case blockTypeUnspecified:
-		return "", errors.New("block type must be specified")
-
 	case BlockTypeBlocks:
-		return "blocks", nil
+		return "blocks"
 
 	case BlockTypeUncles:
-		return "uncles", nil
+		return "uncles"
 
 	default:
-		return "", errors.Errorf("unknown block type %d", int32(b))
+		panic(fmt.Sprintf("unknown block type %d", int32(b)))
 	}
-}
-
-func (b BlockType) String() string {
-	str, err := b.TryString()
-	if err != nil {
-		panic(err)
-	}
-
-	return str
 }
 
 type BlockInfo struct {
@@ -689,15 +542,10 @@ func (res *blockResult) toInfo() *BlockInfo {
 func (c *AccountsClient) ListBlocksMined(
 	ctx context.Context, req *ListBlocksRequest,
 ) ([]BlockInfo, error) {
-	params, err := req.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: accountModule,
 		action: "getminedblocks",
-		other:  params,
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -718,14 +566,7 @@ func (c *AccountsClient) ListBlocksMined(
 
 type HistoricalETHRequest struct {
 	Address     common.Address
-	BlockNumber uint64
-}
-
-func (req *HistoricalETHRequest) toParams() map[string]string {
-	return map[string]string{
-		"address": req.Address.String(),
-		"blockno": strconv.FormatUint(req.BlockNumber, 10),
-	}
+	BlockNumber uint64 `etherscan:"blockno"`
 }
 
 func (c *AccountsClient) GetHistoricalETHBalance(
@@ -734,7 +575,7 @@ func (c *AccountsClient) GetHistoricalETHBalance(
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: accountModule,
 		action: "balancehistory",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err

@@ -206,15 +206,10 @@ type DateRange struct {
 const dateFormat = "2006-01-02"
 
 func (d *DateRange) toParams() (map[string]string, error) {
-	sort, err := d.Sort.tryString()
-	if err != nil {
-		return nil, err
-	}
-
 	return map[string]string{
 		"startdate": d.StartDate.Format(dateFormat),
 		"enddate":   d.EndDate.Format(dateFormat),
-		"sort":      sort,
+		"sort":      d.Sort.String(),
 	}, nil
 }
 
