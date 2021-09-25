@@ -193,15 +193,8 @@ func (c *ProxyClient) GetBlockByNumberSummary(
 }
 
 type BlockNumberAndIndex struct {
-	Number uint64 `etherscan:"tag"`
-	Index  uint32
-}
-
-func (b BlockNumberAndIndex) toParams() map[string]string {
-	return map[string]string{
-		"tag":   hexutil.EncodeUint64(b.Number),
-		"index": hexutil.EncodeUint64(uint64(b.Index)),
-	}
+	Number uint64 `etherscan:"tag,hex"`
+	Index  uint32 `etherscan:"index,hex"`
 }
 
 func (c *ProxyClient) GetUncleByBlockNumberAndIndex(
@@ -210,7 +203,7 @@ func (c *ProxyClient) GetUncleByBlockNumberAndIndex(
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: proxyModule,
 		action: "eth_getUncleByBlockNumberAndIndex",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -326,7 +319,7 @@ func (c *ProxyClient) GetTransactionByBlockNumberAndIndex(
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: proxyModule,
 		action: "eth_getTransactionByBlockNumberAndIndex",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -345,20 +338,13 @@ type TxCountRequest struct {
 	Tag     BlockParameter
 }
 
-func (req *TxCountRequest) toParams() map[string]string {
-	return map[string]string{
-		"address": req.Address.String(),
-		"tag":     req.Tag.String(),
-	}
-}
-
 func (c *ProxyClient) GetTransactionCount(
 	ctx context.Context, req *TxCountRequest,
 ) (uint64, error) {
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: proxyModule,
 		action: "eth_getTransactionCount",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return 0, err
@@ -520,21 +506,13 @@ type CallRequest struct {
 	Tag  BlockParameter
 }
 
-func (req *CallRequest) toParams() map[string]string {
-	return map[string]string{
-		"to":   req.To.String(),
-		"data": hexutil.Encode(req.Data),
-		"tag":  req.Tag.String(),
-	}
-}
-
 func (c *ProxyClient) Call(
 	ctx context.Context, req *CallRequest,
 ) ([]byte, error) {
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: proxyModule,
 		action: "eth_call",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -553,20 +531,13 @@ type GetCodeRequest struct {
 	Tag     BlockParameter
 }
 
-func (req *GetCodeRequest) toParams() map[string]string {
-	return map[string]string{
-		"address": req.Address.String(),
-		"tag":     req.Tag.String(),
-	}
-}
-
 func (c *ProxyClient) GetCode(
 	ctx context.Context, req *GetCodeRequest,
 ) ([]byte, error) {
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: proxyModule,
 		action: "eth_getCode",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -582,16 +553,8 @@ func (c *ProxyClient) GetCode(
 
 type GetStorageRequest struct {
 	Address  common.Address
-	Position uint32
+	Position uint32 `etherscan:"position,hex"`
 	Tag      BlockParameter
-}
-
-func (req *GetStorageRequest) toParams() map[string]string {
-	return map[string]string{
-		"address":  req.Address.String(),
-		"position": hexutil.EncodeUint64(uint64(req.Position)),
-		"tag":      req.Tag.String(),
-	}
 }
 
 func (c *ProxyClient) GetStorageAt(
@@ -600,7 +563,7 @@ func (c *ProxyClient) GetStorageAt(
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: proxyModule,
 		action: "eth_getStorageAt",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err
@@ -634,19 +597,9 @@ func (c *ProxyClient) GasPrice(ctx context.Context) (*big.Int, error) {
 type EstimateGasRequest struct {
 	Data     []byte
 	To       common.Address
-	Value    *big.Int
-	Gas      *big.Int
-	GasPrice *big.Int
-}
-
-func (req *EstimateGasRequest) toParams() map[string]string {
-	return map[string]string{
-		"data":     hexutil.Encode(req.Data),
-		"to":       req.To.String(),
-		"value":    hexutil.EncodeBig(req.Value),
-		"gas":      hexutil.EncodeBig(req.Gas),
-		"gasPrice": hexutil.EncodeBig(req.GasPrice),
-	}
+	Value    *big.Int `etherscan:"value,hex"`
+	Gas      *big.Int `etherscan:"gas,hex"`
+	GasPrice *big.Int `etherscan:"gasPrice,hex"`
 }
 
 func (c *ProxyClient) EstimateGas(
@@ -655,7 +608,7 @@ func (c *ProxyClient) EstimateGas(
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: proxyModule,
 		action: "eth_estimateGas",
-		other:  req.toParams(),
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return nil, err

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRequestMarshaller(t *testing.T) {
@@ -13,12 +12,11 @@ func TestRequestMarshaller(t *testing.T) {
 		Index:  420,
 	}
 
-	res, err := marshalRequest(req)
-	require.NoError(t, err)
+	res := marshalRequest(&req)
 
 	expected := map[string]string{
-		"tag":   "123456",
-		"index": "420",
+		"tag":   "0x1e240",
+		"index": "0x1a4",
 	}
 	assert.Equal(t, expected, res)
 }
