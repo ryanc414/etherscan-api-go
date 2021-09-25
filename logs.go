@@ -109,10 +109,7 @@ func (c *TopicComparison) toParam() (string, string, error) {
 	}
 
 	key := fmt.Sprintf("topic%d_%d_opr", c.Topics[0], c.Topics[1])
-	val, err := c.Operator.tryString()
-	if err != nil {
-		return "", "", err
-	}
+	val := c.Operator.String()
 
 	return key, val, nil
 }
@@ -120,21 +117,20 @@ func (c *TopicComparison) toParam() (string, string, error) {
 type ComparisonOperator int32
 
 const (
-	comparisonOperatorUnspecified = iota
-	ComparisonOperatorAnd
+	ComparisonOperatorAnd = iota
 	ComparisonOperatorOr
 )
 
-func (op ComparisonOperator) tryString() (string, error) {
+func (op ComparisonOperator) String() string {
 	switch op {
 	case ComparisonOperatorAnd:
-		return "and", nil
+		return "and"
 
 	case ComparisonOperatorOr:
-		return "or", nil
+		return "or"
 
 	default:
-		return "", errors.Errorf("unexpected comparison operator %d", int32(op))
+		panic(fmt.Sprintf("unexpected comparison operator %d", int32(op)))
 	}
 }
 
