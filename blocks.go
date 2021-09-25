@@ -3,12 +3,12 @@ package etherscan
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pkg/errors"
 )
 
 const blocksModule = "block"
@@ -142,48 +142,30 @@ type BlockNumberRequest struct {
 type ClosestAvailableBlock int32
 
 const (
-	closestAvailableBlockUnknown = iota
-	ClosestAvailableBlockBefore
+	ClosestAvailableBlockBefore = iota
 	ClosestAvailableBlockAfter
 )
 
-func (c ClosestAvailableBlock) tryString() (string, error) {
+func (c ClosestAvailableBlock) String() string {
 	switch c {
 	case ClosestAvailableBlockBefore:
-		return "before", nil
+		return "before"
 
 	case ClosestAvailableBlockAfter:
-		return "after", nil
+		return "after"
 
 	default:
-		return "", errors.Errorf("unknown closest available block parameter %d", int32(c))
+		panic(fmt.Sprintf("unknown closest available block parameter %d", int32(c)))
 	}
-}
-
-func (req *BlockNumberRequest) toParams() (map[string]string, error) {
-	closest, err := req.Closest.tryString()
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]string{
-		"timestamp": strconv.FormatInt(req.Timestamp.Unix(), 10),
-		"closest":   closest,
-	}, nil
 }
 
 func (c *BlocksClient) GetBlockNumber(
 	ctx context.Context, req *BlockNumberRequest,
 ) (uint64, error) {
-	params, err := req.toParams()
-	if err != nil {
-		return 0, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: blocksModule,
 		action: "getblocknobytime",
-		other:  params,
+		other:  marshalRequest(req),
 	})
 	if err != nil {
 		return 0, err
@@ -198,19 +180,9 @@ func (c *BlocksClient) GetBlockNumber(
 }
 
 type DateRange struct {
-	StartDate time.Time
-	EndDate   time.Time
+	StartDate time.Time `etherscan:"startdate,date"`
+	EndDate   time.Time `etherscan:"enddate,date"`
 	Sort      SortingPreference
-}
-
-const dateFormat = "2006-01-02"
-
-func (d *DateRange) toParams() (map[string]string, error) {
-	return map[string]string{
-		"startdate": d.StartDate.Format(dateFormat),
-		"enddate":   d.EndDate.Format(dateFormat),
-		"sort":      d.Sort.String(),
-	}, nil
 }
 
 type AverageBlockSize struct {
@@ -234,15 +206,10 @@ func (r *avgBlockSizeResult) toBlockSize() *AverageBlockSize {
 func (c *BlocksClient) GetDailyAverageBlockSize(
 	ctx context.Context, dates *DateRange,
 ) ([]AverageBlockSize, error) {
-	params, err := dates.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: blocksModule,
 		action: "dailyavgblocksize",
-		other:  params,
+		other:  marshalRequest(dates),
 	})
 	if err != nil {
 		return nil, err
@@ -281,15 +248,10 @@ func (r *blockCountResult) toCount() *BlockCount {
 func (c *BlocksClient) GetDailyBlockCount(
 	ctx context.Context, dates *DateRange,
 ) ([]BlockCount, error) {
-	params, err := dates.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: blocksModule,
 		action: "dailyblkcount",
-		other:  params,
+		other:  marshalRequest(dates),
 	})
 	if err != nil {
 		return nil, err
@@ -329,15 +291,10 @@ func (r *blockRewardResult) toRewards() *DailyBlockRewards {
 func (c *BlocksClient) GetDailyBlockRewards(
 	ctx context.Context, dates *DateRange,
 ) ([]DailyBlockRewards, error) {
-	params, err := dates.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: blocksModule,
 		action: "dailyblockrewards",
-		other:  params,
+		other:  marshalRequest(dates),
 	})
 	if err != nil {
 		return nil, err
@@ -377,15 +334,10 @@ func (r *dailyBlockTimeResult) toBlockTime() *DailyBlockTime {
 func (c *BlocksClient) GetDailyAverageBlockTime(
 	ctx context.Context, dates *DateRange,
 ) ([]DailyBlockTime, error) {
-	params, err := dates.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: blocksModule,
 		action: "dailyavgblocktime",
-		other:  params,
+		other:  marshalRequest(dates),
 	})
 	if err != nil {
 		return nil, err
@@ -428,15 +380,10 @@ func (r *dailyUnclesResult) toUnclesCount() *DailyUnclesCount {
 func (c *BlocksClient) GetDailyUnclesCount(
 	ctx context.Context, dates *DateRange,
 ) ([]DailyUnclesCount, error) {
-	params, err := dates.toParams()
-	if err != nil {
-		return nil, err
-	}
-
 	rspData, err := c.api.get(ctx, &requestParams{
 		module: blocksModule,
 		action: "dailyuncleblkcount",
-		other:  params,
+		other:  marshalRequest(dates),
 	})
 	if err != nil {
 		return nil, err

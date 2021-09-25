@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -42,6 +43,8 @@ func keyName(fieldType reflect.StructField, info *tagInfo) string {
 	return strings.ToLower(fieldType.Name)
 }
 
+const dateFormat = "2006-01-02"
+
 func formatValue(fieldVal reflect.Value, info *tagInfo) string {
 	iVal := fieldVal.Interface()
 	if v, ok := iVal.([]byte); ok {
@@ -50,6 +53,13 @@ func formatValue(fieldVal reflect.Value, info *tagInfo) string {
 
 	if v, ok := iVal.(*big.Int); ok && info.hex {
 		return hexutil.EncodeBig(v)
+	}
+
+	if v, ok := iVal.(time.Time); ok {
+		if info.date {
+			return v.Format(dateFormat)
+		}
+		return strconv.FormatInt(v.Unix(), 10)
 	}
 
 	switch fieldVal.Kind() {
@@ -82,8 +92,9 @@ func formatValue(fieldVal reflect.Value, info *tagInfo) string {
 }
 
 type tagInfo struct {
-	name string
+	date bool
 	hex  bool
+	name string
 }
 
 func parseTag(fieldType reflect.StructField) tagInfo {
@@ -98,8 +109,12 @@ func parseTag(fieldType reflect.StructField) tagInfo {
 	info.name = items[0]
 
 	for i := 1; i < len(items); i++ {
-		if items[i] == "hex" {
+		switch items[i] {
+		case "hex":
 			info.hex = true
+
+		case "date":
+			info.date = true
 		}
 	}
 
