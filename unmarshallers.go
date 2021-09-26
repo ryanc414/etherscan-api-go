@@ -5,7 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"math/big"
+	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -142,4 +144,101 @@ func (f *floatStr) UnmarshalJSON(data []byte) error {
 
 func (f floatStr) unwrap() float64 {
 	return float64(f)
+}
+
+func unmarshalResponse(data []byte, v interface{}) error {
+	rspType := reflect.TypeOf(v)
+	if rspType.Kind() != reflect.Ptr {
+		return errors.New("value must be a pointer")
+	}
+
+	rspStructType := rspType.Elem()
+	switch rspStructType.Kind() {
+	case reflect.Struct:
+		return unmarshalStructRsp(data, v)
+
+	case reflect.Slice:
+		if rspStructType.Elem().Kind() != reflect.Struct {
+			return errors.New("only slices of structs are allowed")
+		}
+
+		return unmarshalSliceRsp(data, v)
+
+	default:
+		return errors.New("value must be a pointer to struct or slice")
+	}
+}
+
+func unmarshalSliceRsp(data []byte, v interface{}) error {
+	val := reflect.ValueOf(v).Elem()
+
+	var rawSlice []json.RawMessage
+	if err := json.Unmarshal(data, &rawSlice); err != nil {
+		return errors.Wrap(err, "while unmarshalling as slice")
+	}
+
+	slice := reflect.MakeSlice(val.Type(), len(rawSlice), len(rawSlice))
+
+	for i := range rawSlice {
+		v := slice.Index(i).Addr().Interface()
+
+		if err := unmarshalStructRsp(rawSlice[i], v); err != nil {
+			return err
+		}
+	}
+
+	val.Set(slice)
+
+	return nil
+}
+
+func unmarshalStructRsp(data []byte, v interface{}) error {
+	var rspMap map[string]json.RawMessage
+	if err := json.Unmarshal(data, &rspMap); err != nil {
+		return errors.Wrap(err, "while unmarshalling as map")
+	}
+
+	val := reflect.ValueOf(v).Elem()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		name := getFieldName(val.Type().Field(i))
+		fieldData := rspMap[name]
+		if err := setFieldValue(field, fieldData); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func getFieldName(field reflect.StructField) string {
+	return strings.ToLower(field.Name)
+}
+
+func setFieldValue(field reflect.Value, data []byte) error {
+	iField := field.Interface()
+	if _, ok := iField.(*big.Int); ok {
+		var res bigInt
+		if err := json.Unmarshal(data, &res); err != nil {
+			return errors.Wrap(err, "while unmarshalling as bigInt")
+		}
+
+		field.Set(reflect.ValueOf(res.unwrap()))
+		return nil
+	}
+
+	if field.Kind() == reflect.Ptr {
+		if err := json.Unmarshal(data, iField); err != nil {
+			return errors.Wrap(err, "while unmarshalling as pointer")
+		}
+
+		return nil
+	}
+
+	if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
+		return errors.Wrap(err, "while unmarshalling as value")
+	}
+
+	return nil
 }

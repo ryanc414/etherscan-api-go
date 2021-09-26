@@ -77,18 +77,6 @@ type MultiBalanceResponse struct {
 	Balance *big.Int
 }
 
-type multiBalanceResult struct {
-	Account string  `json:"account"`
-	Balance *bigInt `json:"balance"`
-}
-
-func (r *multiBalanceResult) toResponse() (*MultiBalanceResponse, error) {
-	return &MultiBalanceResponse{
-		Account: common.HexToAddress(r.Account),
-		Balance: r.Balance.unwrap(),
-	}, nil
-}
-
 func (c *AccountsClient) GetMultiETHBalances(
 	ctx context.Context, req *MultiETHBalancesRequest,
 ) ([]MultiBalanceResponse, error) {
@@ -101,19 +89,9 @@ func (c *AccountsClient) GetMultiETHBalances(
 		return nil, err
 	}
 
-	var result []multiBalanceResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var response []MultiBalanceResponse
+	if err := unmarshalResponse(rspData, &response); err != nil {
 		return nil, err
-	}
-
-	response := make([]MultiBalanceResponse, len(result))
-	for i := range result {
-		rsp, err := result[i].toResponse()
-		if err != nil {
-			return nil, err
-		}
-
-		response[i] = *rsp
 	}
 
 	return response, nil
