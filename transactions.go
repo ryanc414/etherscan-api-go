@@ -7,28 +7,16 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+const transactionModule = "transaction"
+
 type TransactionsClient struct {
 	api *apiClient
 }
 
 type ExecutionStatus struct {
-	IsError        bool
-	ErrDescription string
+	IsError        bool   `etherscan:"isError"`
+	ErrDescription string `etherscan:"errDescription"`
 }
-
-type executionStatusResult struct {
-	IsError        string `json:"isError"`
-	ErrDescription string `json:"errDescription"`
-}
-
-func (res *executionStatusResult) toStatus() *ExecutionStatus {
-	return &ExecutionStatus{
-		IsError:        res.IsError != "0",
-		ErrDescription: res.ErrDescription,
-	}
-}
-
-const transactionModule = "transaction"
 
 func (c *TransactionsClient) GetExecutionStatus(
 	ctx context.Context, txHash common.Hash,
@@ -42,12 +30,12 @@ func (c *TransactionsClient) GetExecutionStatus(
 		return nil, err
 	}
 
-	var result executionStatusResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(ExecutionStatus)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toStatus(), nil
+	return result, nil
 }
 
 type txReceiptStatusResult struct {
@@ -72,5 +60,4 @@ func (c *TransactionsClient) GetTxReceiptStatus(
 	}
 
 	return result.Status != "0", nil
-
 }
