@@ -311,11 +311,11 @@ const listNormalTxResponse = `{
 	   {
 		  "blockNumber":"0",
 		  "timeStamp":"1438269973",
-		  "hash":"GENESIS_ddbd2b932c763ba5b1b7ae3b362eac3e8d40121a",
+		  "hash":"0xad1c27dd8d0329dbc400021d7477b34ac41e84365bd54b45a4019a15deb10c0d",
 		  "nonce":"",
 		  "blockHash":"",
 		  "transactionIndex":"0",
-		  "from":"GENESIS",
+		  "from":"0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a",
 		  "to":"0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a",
 		  "value":"10000000000000000000000",
 		  "gas":"0",

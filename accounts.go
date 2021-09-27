@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -125,124 +124,34 @@ func (s SortingPreference) String() string {
 }
 
 type TransactionInfo struct {
-	BlockNumber     uint64
-	Timestamp       time.Time
+	BlockNumber     uint64    `etherscan:"blockNumber"`
+	Timestamp       time.Time `etherscan:"timeStamp"`
 	Hash            common.Hash
 	From            common.Address
 	To              common.Address
 	Value           *big.Int
-	ContractAddress *common.Address
+	ContractAddress *common.Address `etherscan:"contractAddress"`
 	Input           []byte
 	Gas             uint64
-	GasUsed         uint64
-	IsError         bool
-	ErrCode         string
-}
-
-type transactionResult struct {
-	BlockNumber     uintStr `json:"blockNumber"`
-	Timestamp       string  `json:"timeStamp"`
-	Hash            string  `json:"hash"`
-	From            string  `json:"from"`
-	To              string  `json:"to"`
-	Value           *bigInt `json:"value"`
-	ContractAddress string  `json:"contractAddress"`
-	Input           string  `json:"input"`
-	Gas             uintStr `json:"gas"`
-	GasUsed         uintStr `json:"gasUsed"`
-	IsError         string  `json:"isError"`
-}
-
-func (tx *transactionResult) toInfo() (*TransactionInfo, error) {
-	timestampUnix, err := strconv.ParseInt(tx.Timestamp, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	var contractAddress *common.Address
-	if tx.ContractAddress != "" {
-		addr := common.HexToAddress(tx.ContractAddress)
-		contractAddress = &addr
-	}
-
-	return &TransactionInfo{
-		BlockNumber:     tx.BlockNumber.unwrap(),
-		Timestamp:       time.Unix(timestampUnix, 0),
-		Hash:            common.HexToHash(tx.Hash),
-		From:            common.HexToAddress(tx.From),
-		To:              common.HexToAddress(tx.To),
-		Value:           tx.Value.unwrap(),
-		Gas:             tx.Gas.unwrap(),
-		IsError:         tx.IsError != "0",
-		Input:           common.Hex2Bytes(tx.Input),
-		ContractAddress: contractAddress,
-		GasUsed:         tx.GasUsed.unwrap(),
-	}, nil
+	GasUsed         uint64 `etherscan:"gasUsed"`
+	IsError         bool   `etherscan:"isError"`
 }
 
 type NormalTxInfo struct {
 	TransactionInfo
 	Nonce             uint64
-	BlockHash         common.Hash
-	TransactionIndex  uint64
-	GasPrice          *big.Int
-	TxReceiptStatus   string
-	CumulativeGasUsed uint64
+	BlockHash         common.Hash `etherscan:"blockHash"`
+	TransactionIndex  uint64      `etherscan:"transactionIndex"`
+	GasPrice          *big.Int    `etherscan:"gasPrice"`
+	TxReceiptStatus   string      `etherscan:"txreceipt_status"`
+	CumulativeGasUsed uint64      `etherscan:"cumulativeGasUsed"`
 	Confirmations     uint64
-}
-
-type normalTxResult struct {
-	transactionResult
-	Nonce             uintStr `json:"nonce"`
-	BlockHash         string  `json:"blockHash"`
-	TransactionIndex  uintStr `json:"transactionIndex"`
-	GasPrice          *bigInt `json:"gasPrice"`
-	TxReceiptStatus   string  `json:"txreceipt_status"`
-	CumulativeGasUsed uintStr `json:"cumulativeGasUsed"`
-	Confirmations     uintStr `json:"confirmations"`
-}
-
-func (tx *normalTxResult) toInfo() (*NormalTxInfo, error) {
-	baseTx, err := tx.transactionResult.toInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	return &NormalTxInfo{
-		TransactionInfo:   *baseTx,
-		Nonce:             tx.Nonce.unwrap(),
-		BlockHash:         common.HexToHash(tx.BlockHash),
-		TransactionIndex:  tx.TransactionIndex.unwrap(),
-		GasPrice:          tx.GasPrice.unwrap(),
-		TxReceiptStatus:   tx.TxReceiptStatus,
-		CumulativeGasUsed: tx.CumulativeGasUsed.unwrap(),
-		Confirmations:     tx.Confirmations.unwrap(),
-	}, nil
 }
 
 type InternalTxInfo struct {
 	TransactionInfo
-	TraceID string
+	TraceID string `etherscan:"traceId"`
 	Type    string
-}
-
-type internalTxResult struct {
-	transactionResult
-	TraceID string `json:"traceId"`
-	Type    string `json:"type"`
-}
-
-func (tx *internalTxResult) toInfo() (*InternalTxInfo, error) {
-	baseTx, err := tx.transactionResult.toInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	return &InternalTxInfo{
-		TransactionInfo: *baseTx,
-		TraceID:         tx.TraceID,
-		Type:            tx.Type,
-	}, nil
 }
 
 func (c *AccountsClient) ListNormalTransactions(
@@ -257,22 +166,12 @@ func (c *AccountsClient) ListNormalTransactions(
 		return nil, err
 	}
 
-	var result []normalTxResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []NormalTxInfo
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	txInfos := make([]NormalTxInfo, len(result))
-	for i := range result {
-		info, err := result[i].toInfo()
-		if err != nil {
-			return nil, err
-		}
-
-		txInfos[i] = *info
-	}
-
-	return txInfos, nil
+	return result, nil
 }
 
 func (c *AccountsClient) ListInternalTransactions(
@@ -287,7 +186,12 @@ func (c *AccountsClient) ListInternalTransactions(
 		return nil, err
 	}
 
-	return unmarshalInternalTxs(rspData)
+	var result []InternalTxInfo
+	if err := unmarshalResponse(rspData, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (c *AccountsClient) GetInternalTxsByHash(
@@ -302,7 +206,12 @@ func (c *AccountsClient) GetInternalTxsByHash(
 		return nil, err
 	}
 
-	return unmarshalInternalTxs(rspData)
+	var result []InternalTxInfo
+	if err := unmarshalResponse(rspData, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 type BlockRangeRequest struct {
@@ -324,26 +233,12 @@ func (c *AccountsClient) GetInternalTxsByBlockRange(
 		return nil, err
 	}
 
-	return unmarshalInternalTxs(rspData)
-}
-
-func unmarshalInternalTxs(rspData []byte) ([]InternalTxInfo, error) {
-	var result []internalTxResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []InternalTxInfo
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	txInfos := make([]InternalTxInfo, len(result))
-	for i := range result {
-		info, err := result[i].toInfo()
-		if err != nil {
-			return nil, err
-		}
-
-		txInfos[i] = *info
-	}
-
-	return txInfos, nil
+	return result, nil
 }
 
 type TokenTransfersRequest struct {
@@ -354,30 +249,9 @@ type TokenTransfersRequest struct {
 
 type TokenTransferInfo struct {
 	NormalTxInfo
-	TokenName    string
-	TokenSymbol  string
-	TokenDecimal uint32
-}
-
-type tokenTransferResult struct {
-	normalTxResult
-	TokenName    string  `json:"tokenName"`
-	TokenSymbol  string  `json:"tokenSymbol"`
-	TokenDecimal uintStr `json:"tokenDecimal"`
-}
-
-func (res *tokenTransferResult) toInfo() (*TokenTransferInfo, error) {
-	baseTx, err := res.normalTxResult.toInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	return &TokenTransferInfo{
-		NormalTxInfo: *baseTx,
-		TokenName:    res.TokenName,
-		TokenSymbol:  res.TokenSymbol,
-		TokenDecimal: uint32(res.TokenDecimal),
-	}, nil
+	TokenName    string `json:"tokenName"`
+	TokenSymbol  string `json:"tokenSymbol"`
+	TokenDecimal uint32 `json:"tokenDecimal"`
 }
 
 func (c *AccountsClient) ListTokenTransfers(
@@ -392,22 +266,12 @@ func (c *AccountsClient) ListTokenTransfers(
 		return nil, err
 	}
 
-	var result []tokenTransferResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []TokenTransferInfo
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	tokenInfos := make([]TokenTransferInfo, len(result))
-	for i := range result {
-		info, err := result[i].toInfo()
-		if err != nil {
-			return nil, err
-		}
-
-		tokenInfos[i] = *info
-	}
-
-	return tokenInfos, nil
+	return result, nil
 }
 
 type ListNFTTransferRequest struct {
@@ -418,24 +282,7 @@ type ListNFTTransferRequest struct {
 
 type NFTTransferInfo struct {
 	TokenTransferInfo
-	TokenID string
-}
-
-type nftTransferResult struct {
-	tokenTransferResult
-	TokenID string `json:"tokenID"`
-}
-
-func (res *nftTransferResult) toInfo() (*NFTTransferInfo, error) {
-	baseTx, err := res.tokenTransferResult.toInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	return &NFTTransferInfo{
-		TokenTransferInfo: *baseTx,
-		TokenID:           res.TokenID,
-	}, nil
+	TokenID string `etherscan:"tokenID"`
 }
 
 func (c *AccountsClient) ListNFTTransfers(
@@ -454,22 +301,12 @@ func (c *AccountsClient) ListNFTTransfers(
 		return nil, err
 	}
 
-	var result []nftTransferResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []NFTTransferInfo
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	nftInfos := make([]NFTTransferInfo, len(result))
-	for i := range result {
-		info, err := result[i].toInfo()
-		if err != nil {
-			return nil, err
-		}
-
-		nftInfos[i] = *info
-	}
-
-	return nftInfos, nil
+	return result, nil
 }
 
 type ListBlocksRequest struct {

@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type bigInt big.Int
@@ -152,71 +153,91 @@ func unmarshalResponse(data []byte, v interface{}) error {
 		return errors.New("value must be a pointer")
 	}
 
-	rspStructType := rspType.Elem()
-	switch rspStructType.Kind() {
+	rspVal := reflect.ValueOf(v).Elem()
+
+	switch rspVal.Kind() {
 	case reflect.Struct:
-		return unmarshalStructRsp(data, v)
+		return unmarshalStructRsp(data, rspVal)
 
 	case reflect.Slice:
-		if rspStructType.Elem().Kind() != reflect.Struct {
+		if rspVal.Type().Elem().Kind() != reflect.Struct {
 			return errors.New("only slices of structs are allowed")
 		}
 
-		return unmarshalSliceRsp(data, v)
+		return unmarshalSliceRsp(data, rspVal)
 
 	default:
 		return errors.New("value must be a pointer to struct or slice")
 	}
 }
 
-func unmarshalSliceRsp(data []byte, v interface{}) error {
-	val := reflect.ValueOf(v).Elem()
-
+func unmarshalSliceRsp(data []byte, v reflect.Value) error {
 	var rawSlice []json.RawMessage
 	if err := json.Unmarshal(data, &rawSlice); err != nil {
 		return errors.Wrap(err, "while unmarshalling as slice")
 	}
 
-	slice := reflect.MakeSlice(val.Type(), len(rawSlice), len(rawSlice))
+	slice := reflect.MakeSlice(v.Type(), len(rawSlice), len(rawSlice))
 
 	for i := range rawSlice {
-		v := slice.Index(i).Addr().Interface()
+		el := slice.Index(i)
 
-		if err := unmarshalStructRsp(rawSlice[i], v); err != nil {
+		if err := unmarshalStructRsp(rawSlice[i], el); err != nil {
 			return err
 		}
 	}
 
-	val.Set(slice)
+	v.Set(slice)
 
 	return nil
 }
 
-func unmarshalStructRsp(data []byte, v interface{}) error {
+func unmarshalStructRsp(data []byte, v reflect.Value) error {
 	var rspMap map[string]json.RawMessage
 	if err := json.Unmarshal(data, &rspMap); err != nil {
 		return errors.Wrap(err, "while unmarshalling as map")
 	}
 
-	val := reflect.ValueOf(v).Elem()
+	fieldTypes := reflect.VisibleFields(v.Type())
 
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		name := getFieldName(val.Type().Field(i))
+	for i := range fieldTypes {
+		fieldType := fieldTypes[i]
+		if fieldType.Anonymous {
+			continue
+		}
+
+		field := v.FieldByIndex(fieldType.Index)
+
+		info := parseTag(fieldType)
+		name := getFieldName(fieldType, &info)
+
 		fieldData := rspMap[name]
+		if len(fieldData) == 0 {
+			log.Debug().Msgf("no field with name %s in response data", name)
+			continue
+		}
+
 		if err := setFieldValue(field, fieldData); err != nil {
-			return err
+			return errors.Wrapf(err, "while unmarshalling field %s", name)
 		}
 	}
 
 	return nil
 }
 
-func getFieldName(field reflect.StructField) string {
+func getFieldName(field reflect.StructField, info *tagInfo) string {
+	if info.name != "" {
+		return info.name
+	}
+
 	return strings.ToLower(field.Name)
 }
 
 func setFieldValue(field reflect.Value, data []byte) error {
+	if string(data) == "\"\"" {
+		return nil
+	}
+
 	iField := field.Interface()
 	if _, ok := iField.(*big.Int); ok {
 		var res bigInt
@@ -228,17 +249,59 @@ func setFieldValue(field reflect.Value, data []byte) error {
 		return nil
 	}
 
-	if field.Kind() == reflect.Ptr {
-		if err := json.Unmarshal(data, iField); err != nil {
-			return errors.Wrap(err, "while unmarshalling as pointer")
+	if _, ok := iField.(time.Time); ok {
+		var res unixTimestamp
+		if err := json.Unmarshal(data, &res); err != nil {
+			return errors.Wrap(err, "while unmarshalling as unix timestamp")
+		}
+
+		field.Set(reflect.ValueOf(res.unwrap()))
+		return nil
+	}
+
+	if _, ok := iField.([]byte); ok {
+		if string(data) == "\"deprecated\"" {
+			return nil
+		}
+
+		var res string
+		if err := json.Unmarshal(data, &res); err != nil {
+			return errors.Wrap(err, "while unmarshalling as string")
+		}
+
+		decoded, err := hexutil.Decode(res)
+		if err != nil {
+			return errors.Wrap(err, "while decoding as hex")
+		}
+
+		field.SetBytes(decoded)
+		return nil
+	}
+
+	switch field.Kind() {
+	case reflect.Uint, reflect.Uint32, reflect.Uint64:
+		var res uintStr
+		if err := json.Unmarshal(data, &res); err != nil {
+			return errors.Wrap(err, "while unmarshalling as uintStr")
+		}
+
+		field.SetUint(res.unwrap())
+		return nil
+
+	case reflect.Bool:
+		var res string
+		if err := json.Unmarshal(data, &res); err != nil {
+			return errors.Wrap(err, "while unmarshalling as string")
+		}
+
+		field.SetBool(res != "0")
+		return nil
+
+	default:
+		if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
+			return errors.Wrap(err, "while unmarshalling as value")
 		}
 
 		return nil
 	}
-
-	if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
-		return errors.Wrap(err, "while unmarshalling as value")
-	}
-
-	return nil
 }
