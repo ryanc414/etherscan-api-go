@@ -172,6 +172,11 @@ func unmarshalResponse(data []byte, v interface{}) error {
 }
 
 func unmarshalSliceRsp(data []byte, v reflect.Value) error {
+	var u json.Unmarshaler
+	if reflect.PtrTo(v.Type().Elem()).Implements(reflect.TypeOf(&u).Elem()) {
+		return json.Unmarshal(data, v.Addr().Interface())
+	}
+
 	var rawSlice []json.RawMessage
 	if err := json.Unmarshal(data, &rawSlice); err != nil {
 		return errors.Wrap(err, "while unmarshalling as slice")
@@ -240,6 +245,16 @@ func setFieldValue(field reflect.Value, data []byte, info *tagInfo) error {
 
 	iField := field.Interface()
 	if _, ok := iField.(*big.Int); ok {
+		if info.hex {
+			var res hexutil.Big
+			if err := json.Unmarshal(data, &res); err != nil {
+				return errors.Wrap(err, "while unmarshalling as hexutil.Big")
+			}
+
+			field.Set(reflect.ValueOf(res.ToInt()))
+			return nil
+		}
+
 		var res bigInt
 		if err := json.Unmarshal(data, &res); err != nil {
 			return errors.Wrap(err, "while unmarshalling as bigInt")
@@ -250,6 +265,16 @@ func setFieldValue(field reflect.Value, data []byte, info *tagInfo) error {
 	}
 
 	if _, ok := iField.(time.Time); ok {
+		if info.hex {
+			var res hexTimestamp
+			if err := json.Unmarshal(data, &res); err != nil {
+				return errors.Wrap(err, "while unmarshalling as unix timestamp")
+			}
+
+			field.Set(reflect.ValueOf(res.unwrap()))
+			return nil
+		}
+
 		var res unixTimestamp
 		if err := json.Unmarshal(data, &res); err != nil {
 			return errors.Wrap(err, "while unmarshalling as unix timestamp")
@@ -284,6 +309,17 @@ func setFieldValue(field reflect.Value, data []byte, info *tagInfo) error {
 			if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
 				return errors.Wrap(err, "while unmarshalling as uint")
 			}
+
+			return nil
+		}
+
+		if info.hex {
+			var res hexUint
+			if err := json.Unmarshal(data, &res); err != nil {
+				return errors.Wrap(err, "while unmarshalling as hexUint")
+			}
+
+			field.SetUint(uint64(res))
 			return nil
 		}
 

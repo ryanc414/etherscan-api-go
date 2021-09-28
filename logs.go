@@ -2,14 +2,12 @@ package etherscan
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
 )
 
@@ -136,48 +134,15 @@ func (op ComparisonOperator) String() string {
 
 type LogResponse struct {
 	Address          common.Address
-	BlockNumber      uint64
+	BlockNumber      uint64 `etherscan:"blockNumber,hex"`
 	Data             []byte
-	GasPrice         *big.Int
-	GasUsed          *big.Int
-	LogIndex         uint32
-	Timestamp        time.Time
+	GasPrice         *big.Int  `etherscan:"gasPrice,hex"`
+	GasUsed          *big.Int  `etherscan:"gasUsed,hex"`
+	LogIndex         uint32    `etherscan:"logIndex,hex"`
+	Timestamp        time.Time `etherscan:"timeStamp,hex"`
 	Topics           []common.Hash
-	TransactionHash  common.Hash
-	TransactionIndex uint32
-}
-
-type logResult struct {
-	Address          string         `json:"address"`
-	BlockNumber      hexutil.Uint64 `json:"blockNumber"`
-	Data             string         `json:"data"`
-	GasPrice         *hexutil.Big   `json:"gasPrice"`
-	GasUsed          *hexutil.Big   `json:"gasUsed"`
-	LogIndex         hexUint        `json:"logIndex"`
-	Timestamp        hexTimestamp   `json:"timeStamp"`
-	Topics           []string       `json:"topics"`
-	TransactionHash  string         `json:"transactionHash"`
-	TransactionIndex hexUint        `json:"transactionIndex"`
-}
-
-func (res *logResult) toLog() LogResponse {
-	topics := make([]common.Hash, len(res.Topics))
-	for i := range res.Topics {
-		topics[i] = common.HexToHash(res.Topics[i])
-	}
-
-	return LogResponse{
-		Address:          common.HexToAddress(res.Address),
-		BlockNumber:      uint64(res.BlockNumber),
-		Data:             common.Hex2Bytes(res.Data),
-		GasPrice:         res.GasPrice.ToInt(),
-		GasUsed:          res.GasUsed.ToInt(),
-		LogIndex:         uint32(res.LogIndex),
-		Timestamp:        res.Timestamp.unwrap(),
-		Topics:           topics,
-		TransactionHash:  common.HexToHash(res.TransactionHash),
-		TransactionIndex: uint32(res.TransactionIndex),
-	}
+	TransactionHash  common.Hash `etherscan:"transactionHash"`
+	TransactionIndex uint32      `etherscan:"transactionIndex,hex"`
 }
 
 func (c *LogsClient) GetLogs(ctx context.Context, req *LogsRequest) ([]LogResponse, error) {
@@ -195,15 +160,10 @@ func (c *LogsClient) GetLogs(ctx context.Context, req *LogsRequest) ([]LogRespon
 		return nil, err
 	}
 
-	var logResult []logResult
-	if err := json.Unmarshal(rspData, &logResult); err != nil {
+	var result []LogResponse
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	logs := make([]LogResponse, len(logResult))
-	for i := range logResult {
-		logs[i] = logResult[i].toLog()
-	}
-
-	return logs, nil
+	return result, nil
 }
