@@ -95,6 +95,7 @@ type tagInfo struct {
 	date bool
 	hex  bool
 	name string
+	num  bool
 }
 
 func parseTag(fieldType reflect.StructField) tagInfo {
@@ -110,11 +111,14 @@ func parseTag(fieldType reflect.StructField) tagInfo {
 
 	for i := 1; i < len(items); i++ {
 		switch items[i] {
+		case "date":
+			info.date = true
+
 		case "hex":
 			info.hex = true
 
-		case "date":
-			info.date = true
+		case "num":
+			info.num = true
 		}
 	}
 

@@ -217,7 +217,7 @@ func unmarshalStructRsp(data []byte, v reflect.Value) error {
 			continue
 		}
 
-		if err := setFieldValue(field, fieldData); err != nil {
+		if err := setFieldValue(field, fieldData, &info); err != nil {
 			return errors.Wrapf(err, "while unmarshalling field %s", name)
 		}
 	}
@@ -233,7 +233,7 @@ func getFieldName(field reflect.StructField, info *tagInfo) string {
 	return strings.ToLower(field.Name)
 }
 
-func setFieldValue(field reflect.Value, data []byte) error {
+func setFieldValue(field reflect.Value, data []byte, info *tagInfo) error {
 	if string(data) == "\"\"" {
 		return nil
 	}
@@ -280,12 +280,28 @@ func setFieldValue(field reflect.Value, data []byte) error {
 
 	switch field.Kind() {
 	case reflect.Uint, reflect.Uint32, reflect.Uint64:
+		if info.num {
+			if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
+				return errors.Wrap(err, "while unmarshalling as uint")
+			}
+			return nil
+		}
+
 		var res uintStr
 		if err := json.Unmarshal(data, &res); err != nil {
 			return errors.Wrap(err, "while unmarshalling as uintStr")
 		}
 
 		field.SetUint(res.unwrap())
+		return nil
+
+	case reflect.Float32, reflect.Float64:
+		var res floatStr
+		if err := json.Unmarshal(data, &res); err != nil {
+			return errors.Wrap(err, "while unmarshalling as floatStr")
+		}
+
+		field.SetFloat(res.unwrap())
 		return nil
 
 	case reflect.Bool:
@@ -296,6 +312,9 @@ func setFieldValue(field reflect.Value, data []byte) error {
 
 		field.SetBool(res != "0")
 		return nil
+
+	case reflect.Slice:
+		return unmarshalSliceRsp(data, field)
 
 	default:
 		if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {

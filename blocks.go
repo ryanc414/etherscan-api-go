@@ -18,57 +18,18 @@ type BlocksClient struct {
 }
 
 type BlockRewards struct {
-	BlockNumber          uint64
-	Timestamp            time.Time
-	BlockMiner           common.Address
-	BlockReward          *big.Int
+	BlockNumber          uint64         `etherscan:"blockNumber"`
+	Timestamp            time.Time      `etherscan:"timeStamp"`
+	BlockMiner           common.Address `etherscan:"blockMiner"`
+	BlockReward          *big.Int       `etherscan:"blockReward"`
 	Uncles               []UncleReward
-	UncleInclusionReward *big.Int
+	UncleInclusionReward *big.Int `etherscan:"uncleInclusionReward"`
 }
 
 type UncleReward struct {
 	Miner         common.Address
-	UnclePosition uint32
-	BlockReward   *big.Int
-}
-
-type blockRewardsResult struct {
-	BlockNumber           uintStr       `json:"blockNumber"`
-	Timestamp             unixTimestamp `json:"timeStamp"`
-	BlockMiner            string        `json:"blockMiner"`
-	BlockReward           bigInt        `json:"blockReward"`
-	Uncles                []uncleResult `json:"uncles"`
-	UnclesInclusionReward bigInt        `json:"uncleInclusionReward"`
-}
-
-type uncleResult struct {
-	Miner       string  `json:"miner"`
-	Position    uintStr `json:"unclePosition"`
-	BlockReward bigInt  `json:"blockreward"`
-}
-
-func (u *uncleResult) toUncle() *UncleReward {
-	return &UncleReward{
-		Miner:         common.HexToAddress(u.Miner),
-		UnclePosition: uint32(u.Position.unwrap()),
-		BlockReward:   u.BlockReward.unwrap(),
-	}
-}
-
-func (r blockRewardsResult) toRewards() *BlockRewards {
-	uncles := make([]UncleReward, len(r.Uncles))
-	for i := range r.Uncles {
-		uncles[i] = *r.Uncles[i].toUncle()
-	}
-
-	return &BlockRewards{
-		BlockNumber:          r.BlockNumber.unwrap(),
-		Timestamp:            r.Timestamp.unwrap(),
-		BlockMiner:           common.HexToAddress(r.BlockMiner),
-		BlockReward:          r.BlockReward.unwrap(),
-		Uncles:               uncles,
-		UncleInclusionReward: r.UnclesInclusionReward.unwrap(),
-	}
+	UnclePosition uint32   `etherscan:"unclePosition"`
+	BlockReward   *big.Int `etherscan:"blockReward"`
 }
 
 func (c *BlocksClient) GetBlockRewards(
@@ -83,35 +44,19 @@ func (c *BlocksClient) GetBlockRewards(
 		return nil, err
 	}
 
-	var result blockRewardsResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(BlockRewards)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toRewards(), nil
+	return result, nil
 }
 
 type BlockCountdown struct {
-	CurrentBlock      uint64
-	CountdownBlock    uint64
-	RemainingBlock    uint64
-	EstimateTimeInSec float64
-}
-
-type blockCountdownResult struct {
-	CurrentBlock      uintStr  `json:"CurrentBlock"`
-	CountdownBlock    uintStr  `json:"CountdownBlock"`
-	RemainingBlock    uintStr  `json:"RemainingBlock"`
-	EstimateTimeInSec floatStr `json:"EstimateTimeInSec"`
-}
-
-func (r *blockCountdownResult) toCountdown() *BlockCountdown {
-	return &BlockCountdown{
-		CurrentBlock:      r.CurrentBlock.unwrap(),
-		CountdownBlock:    r.CountdownBlock.unwrap(),
-		RemainingBlock:    r.RemainingBlock.unwrap(),
-		EstimateTimeInSec: r.EstimateTimeInSec.unwrap(),
-	}
+	CurrentBlock      uint64  `etherscan:"CurrentBlock"`
+	CountdownBlock    uint64  `etherscan:"CountdownBlock"`
+	RemainingBlock    uint64  `etherscan:"RemainingBlock"`
+	EstimateTimeInSec float64 `etherscan:"EstimateTimeInSec"`
 }
 
 func (c *BlocksClient) GetBlockCountdown(
@@ -126,12 +71,12 @@ func (c *BlocksClient) GetBlockCountdown(
 		return nil, err
 	}
 
-	var result blockCountdownResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(BlockCountdown)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toCountdown(), nil
+	return result, nil
 }
 
 type BlockNumberRequest struct {
@@ -186,21 +131,8 @@ type DateRange struct {
 }
 
 type AverageBlockSize struct {
-	Timestamp      time.Time
-	BlockSizeBytes uint32
-}
-
-type avgBlockSizeResult struct {
-	UTCDate   string        `json:"UTCDate"`
-	Timestamp unixTimestamp `json:"unixTimestamp"`
-	BlockSize uint32        `json:"blockSize_bytes"`
-}
-
-func (r *avgBlockSizeResult) toBlockSize() *AverageBlockSize {
-	return &AverageBlockSize{
-		Timestamp:      r.Timestamp.unwrap(),
-		BlockSizeBytes: r.BlockSize,
-	}
+	Timestamp      time.Time `etherscan:"unixTimeStamp"`
+	BlockSizeBytes uint32    `etherscan:"blockSize_bytes,num"`
 }
 
 func (c *BlocksClient) GetDailyAverageBlockSize(
@@ -215,34 +147,17 @@ func (c *BlocksClient) GetDailyAverageBlockSize(
 		return nil, err
 	}
 
-	var result []avgBlockSizeResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []AverageBlockSize
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	avgBlockSizes := make([]AverageBlockSize, len(result))
-	for i := range avgBlockSizes {
-		avgBlockSizes[i] = *result[i].toBlockSize()
-	}
-
-	return avgBlockSizes, nil
+	return result, nil
 }
 
 type BlockCount struct {
 	DailyBlockRewards
-	BlockCount uint32
-}
-
-type blockCountResult struct {
-	blockRewardResult
-	BlockCount uint32 `json:"blockCount"`
-}
-
-func (r *blockCountResult) toCount() *BlockCount {
-	return &BlockCount{
-		DailyBlockRewards: *r.blockRewardResult.toRewards(),
-		BlockCount:        r.BlockCount,
-	}
+	BlockCount uint32 `etherscan:"blockCount,num"`
 }
 
 func (c *BlocksClient) GetDailyBlockCount(
@@ -257,35 +172,17 @@ func (c *BlocksClient) GetDailyBlockCount(
 		return nil, err
 	}
 
-	var result []blockCountResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []BlockCount
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	counts := make([]BlockCount, len(result))
-	for i := range result {
-		counts[i] = *result[i].toCount()
-	}
-
-	return counts, nil
+	return result, nil
 }
 
 type DailyBlockRewards struct {
-	Timestamp       time.Time
-	BlockRewardsETH float64
-}
-
-type blockRewardResult struct {
-	UTCDate      string        `json:"UTCDate"`
-	Timestamp    unixTimestamp `json:"unixTimestamp"`
-	BlockRewards floatStr      `json:"blockRewards_Eth"`
-}
-
-func (r *blockRewardResult) toRewards() *DailyBlockRewards {
-	return &DailyBlockRewards{
-		Timestamp:       r.Timestamp.unwrap(),
-		BlockRewardsETH: r.BlockRewards.unwrap(),
-	}
+	Timestamp       time.Time `etherscan:"unixTimeStamp"`
+	BlockRewardsETH float64   `etherscan:"blockRewards_Eth"`
 }
 
 func (c *BlocksClient) GetDailyBlockRewards(
@@ -300,35 +197,17 @@ func (c *BlocksClient) GetDailyBlockRewards(
 		return nil, err
 	}
 
-	var result []blockRewardResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []DailyBlockRewards
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	counts := make([]DailyBlockRewards, len(result))
-	for i := range result {
-		counts[i] = *result[i].toRewards()
-	}
-
-	return counts, nil
+	return result, nil
 }
 
 type DailyBlockTime struct {
-	Timestamp        time.Time
-	BlockTimeSeconds float64
-}
-
-type dailyBlockTimeResult struct {
-	UTCDate       string        `json:"UTCDate"`
-	Timestamp     unixTimestamp `json:"unixTimestamp"`
-	BlockTimeSecs floatStr      `json:"blockTime_sec"`
-}
-
-func (r *dailyBlockTimeResult) toBlockTime() *DailyBlockTime {
-	return &DailyBlockTime{
-		Timestamp:        r.Timestamp.unwrap(),
-		BlockTimeSeconds: r.BlockTimeSecs.unwrap(),
-	}
+	Timestamp        time.Time `etherscan:"unixTimeStamp"`
+	BlockTimeSeconds float64   `etherscan:"blockTime_sec"`
 }
 
 func (c *BlocksClient) GetDailyAverageBlockTime(
@@ -343,38 +222,18 @@ func (c *BlocksClient) GetDailyAverageBlockTime(
 		return nil, err
 	}
 
-	var result []dailyBlockTimeResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []DailyBlockTime
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	counts := make([]DailyBlockTime, len(result))
-	for i := range result {
-		counts[i] = *result[i].toBlockTime()
-	}
-
-	return counts, nil
+	return result, nil
 }
 
 type DailyUnclesCount struct {
-	Timestamp            time.Time
-	UncleBlockCount      uint32
-	UncleBlockRewardsETH float64
-}
-
-type dailyUnclesResult struct {
-	UTCDate           string        `json:"UTCDate"`
-	Timestamp         unixTimestamp `json:"unixTimestamp"`
-	UncleBlockCount   uint32        `json:"uncleBlockCount"`
-	UncleBlockRewards floatStr      `json:"uncleBlockRewards_Eth"`
-}
-
-func (r *dailyUnclesResult) toUnclesCount() *DailyUnclesCount {
-	return &DailyUnclesCount{
-		Timestamp:            r.Timestamp.unwrap(),
-		UncleBlockCount:      r.UncleBlockCount,
-		UncleBlockRewardsETH: r.UncleBlockRewards.unwrap(),
-	}
+	Timestamp            time.Time `etherscan:"unixTimeStamp"`
+	UncleBlockCount      uint32    `etherscan:"uncleBlockCount,num"`
+	UncleBlockRewardsETH float64   `etherscan:"uncleBlockRewards_Eth"`
 }
 
 func (c *BlocksClient) GetDailyUnclesCount(
@@ -389,15 +248,10 @@ func (c *BlocksClient) GetDailyUnclesCount(
 		return nil, err
 	}
 
-	var result []dailyUnclesResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	var result []DailyUnclesCount
+	if err := unmarshalResponse(rspData, &result); err != nil {
 		return nil, err
 	}
 
-	counts := make([]DailyUnclesCount, len(result))
-	for i := range result {
-		counts[i] = *result[i].toUnclesCount()
-	}
-
-	return counts, nil
+	return result, nil
 }
