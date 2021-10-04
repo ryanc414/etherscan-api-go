@@ -14,7 +14,7 @@ type TransactionsClient struct {
 }
 
 type ExecutionStatus struct {
-	IsError        bool   `etherscan:"isError"`
+	IsError        bool   `etherscan:"isError,num"`
 	ErrDescription string `etherscan:"errDescription"`
 }
 

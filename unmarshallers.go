@@ -341,13 +341,27 @@ func setFieldValue(field reflect.Value, data []byte, info *tagInfo) error {
 		return nil
 
 	case reflect.Bool:
-		var res string
-		if err := json.Unmarshal(data, &res); err != nil {
-			return errors.Wrap(err, "while unmarshalling as string")
+		if info.hex {
+			var res hexutil.Uint
+			if err := json.Unmarshal(data, &res); err != nil {
+				return errors.Wrap(err, "while unmarshalling as hexutil.Uint")
+			}
+
+			field.SetBool(uint64(res) != 0)
+			return nil
 		}
 
-		field.SetBool(res != "0")
-		return nil
+		if info.num {
+			var res string
+			if err := json.Unmarshal(data, &res); err != nil {
+				return errors.Wrap(err, "while unmarshalling as string")
+			}
+
+			field.SetBool(res != "0")
+			return nil
+		}
+
+		return json.Unmarshal(data, field.Addr().Interface())
 
 	case reflect.Slice:
 		return unmarshalSliceRsp(data, field)

@@ -134,7 +134,7 @@ type TransactionInfo struct {
 	Input           []byte
 	Gas             uint64
 	GasUsed         uint64 `etherscan:"gasUsed"`
-	IsError         bool   `etherscan:"isError"`
+	IsError         bool   `etherscan:"isError,num"`
 }
 
 type NormalTxInfo struct {

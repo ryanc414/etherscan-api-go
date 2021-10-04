@@ -44,7 +44,7 @@ type ContractInfo struct {
 	EVMVersion           string `etherscan:"EVMVersion"`
 	Library              string `etherscan:"Library"`
 	LicenseType          string `etherscan:"LicenseType"`
-	Proxy                bool   `etherscan:"Proxy"`
+	Proxy                bool   `etherscan:"Proxy,num"`
 	Implementation       string `etherscan:"Implementation"`
 	SwarmSource          string `etherscan:"SwarmSource"`
 }

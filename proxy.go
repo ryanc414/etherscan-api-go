@@ -37,96 +37,31 @@ func (c *ProxyClient) BlockNumber(ctx context.Context) (uint64, error) {
 }
 
 type ProxyBaseBlockInfo struct {
-	BaseFeePerGas    *big.Int
-	Difficulty       *big.Int
-	ExtraData        []byte
-	GasLimit         *big.Int
-	GasUsed          *big.Int
+	BaseFeePerGas    *big.Int `etherscan:"baseFeePerGas,hex"`
+	Difficulty       *big.Int `etherscan:"difficulty,hex"`
+	ExtraData        []byte   `etherscan:"extraData,hex"`
+	GasLimit         *big.Int `etherscan:"gasLimit,hex"`
+	GasUsed          *big.Int `etherscan:"gasUsed,hex"`
 	Hash             common.Hash
-	LogsBloom        []byte
+	LogsBloom        []byte `etherscan:"logsBloom,hex"`
 	Miner            common.Address
 	MixHash          common.Hash
-	Nonce            *big.Int
-	Number           uint64
-	ParentHash       common.Hash
-	ReceiptsRoot     common.Hash
-	SHA3Uncles       common.Hash
-	Size             uint64
-	StateRoot        common.Hash
-	Timestamp        time.Time
-	TotalDifficulty  *big.Int
-	TransactionsRoot common.Hash
+	Nonce            *big.Int    `etherscan:"nonce,hex"`
+	Number           uint64      `etherscan:"number,hex"`
+	ParentHash       common.Hash `etherscan:"parentHash"`
+	ReceiptsRoot     common.Hash `etherscan:"receiptsRoot"`
+	SHA3Uncles       common.Hash `etherscan:"sha3Uncles"`
+	Size             uint64      `etherscan:"size,hex"`
+	StateRoot        common.Hash `etherscan:"stateRoot"`
+	Timestamp        time.Time   `etherscan:"timestamp,hex"`
+	TotalDifficulty  *big.Int    `etherscan:"totalDifficulty,hex"`
+	TransactionsRoot common.Hash `etherscan:"transactionsRoot"`
 	Uncles           []common.Hash
-}
-
-type proxyBaseBlockResult struct {
-	BaseFeePerGas    *hexutil.Big   `json:"baseFeePerGas"`
-	Difficulty       *hexutil.Big   `json:"difficulty"`
-	ExtraData        hexutil.Bytes  `json:"extraData"`
-	GasLimit         *hexutil.Big   `json:"gasLimit"`
-	GasUsed          *hexutil.Big   `json:"gasUsed"`
-	Hash             common.Hash    `json:"hash"`
-	LogsBloom        hexutil.Bytes  `json:"logsBloom"`
-	Miner            common.Address `json:"miner"`
-	MixHash          common.Hash    `json:"mixHash"`
-	Nonce            *hexutil.Big   `json:"nonce"`
-	Number           hexutil.Uint64 `json:"number"`
-	ParentHash       common.Hash    `json:"parentHash"`
-	ReceiptsRoot     common.Hash    `json:"receiptsRoot"`
-	SHA3Uncles       common.Hash    `json:"sha3Uncles"`
-	Size             hexutil.Uint64 `json:"size"`
-	StateRoot        common.Hash    `json:"stateRoot"`
-	Timestamp        hexTimestamp   `json:"timestamp"`
-	TotalDifficulty  *hexutil.Big   `json:"totalDifficulty"`
-	TransactionsRoot common.Hash    `json:"transactionsRoot"`
-	Uncles           []common.Hash  `json:"uncles"`
-}
-
-func (res *proxyBaseBlockResult) toInfo() *ProxyBaseBlockInfo {
-	return &ProxyBaseBlockInfo{
-		BaseFeePerGas:    res.BaseFeePerGas.ToInt(),
-		Difficulty:       res.Difficulty.ToInt(),
-		ExtraData:        res.ExtraData,
-		GasLimit:         res.GasLimit.ToInt(),
-		GasUsed:          res.GasUsed.ToInt(),
-		Hash:             res.Hash,
-		LogsBloom:        res.LogsBloom,
-		Miner:            res.Miner,
-		MixHash:          res.MixHash,
-		Nonce:            res.Nonce.ToInt(),
-		Number:           uint64(res.Number),
-		ParentHash:       res.ParentHash,
-		ReceiptsRoot:     res.ReceiptsRoot,
-		SHA3Uncles:       res.SHA3Uncles,
-		Size:             uint64(res.Size),
-		StateRoot:        res.StateRoot,
-		Timestamp:        res.Timestamp.unwrap(),
-		TotalDifficulty:  res.TotalDifficulty.ToInt(),
-		TransactionsRoot: res.TransactionsRoot,
-		Uncles:           res.Uncles,
-	}
 }
 
 type ProxyFullBlockInfo struct {
 	ProxyBaseBlockInfo
 	Transactions []ProxyTransactionInfo
-}
-
-type proxyFullBlockResult struct {
-	proxyBaseBlockResult
-	Transactions []proxyTransactionResult `json:"transactions"`
-}
-
-func (res *proxyFullBlockResult) toInfo() *ProxyFullBlockInfo {
-	transactions := make([]ProxyTransactionInfo, len(res.Transactions))
-	for i := range res.Transactions {
-		transactions[i] = *res.Transactions[i].toInfo()
-	}
-
-	return &ProxyFullBlockInfo{
-		ProxyBaseBlockInfo: *res.proxyBaseBlockResult.toInfo(),
-		Transactions:       transactions,
-	}
 }
 
 func (c *ProxyClient) GetBlockByNumberFull(
@@ -144,29 +79,17 @@ func (c *ProxyClient) GetBlockByNumberFull(
 		return nil, err
 	}
 
-	var result proxyFullBlockResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(ProxyFullBlockInfo)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toInfo(), nil
+	return result, nil
 }
 
 type ProxySummaryBlockInfo struct {
 	ProxyBaseBlockInfo
 	Transactions []common.Hash
-}
-
-type proxySummaryBlockResult struct {
-	proxyBaseBlockResult
-	Transactions []common.Hash `json:"transactions"`
-}
-
-func (res *proxySummaryBlockResult) toInfo() *ProxySummaryBlockInfo {
-	return &ProxySummaryBlockInfo{
-		ProxyBaseBlockInfo: *res.proxyBaseBlockResult.toInfo(),
-		Transactions:       res.Transactions,
-	}
 }
 
 func (c *ProxyClient) GetBlockByNumberSummary(
@@ -184,12 +107,12 @@ func (c *ProxyClient) GetBlockByNumberSummary(
 		return nil, err
 	}
 
-	var result proxySummaryBlockResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(ProxySummaryBlockInfo)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toInfo(), nil
+	return result, nil
 }
 
 type BlockNumberAndIndex struct {
@@ -209,12 +132,12 @@ func (c *ProxyClient) GetUncleByBlockNumberAndIndex(
 		return nil, err
 	}
 
-	var result proxyBaseBlockResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(ProxyBaseBlockInfo)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toInfo(), nil
+	return result, nil
 }
 
 func (c *ProxyClient) GetBlockTransactionCountByNumber(
@@ -238,59 +161,21 @@ func (c *ProxyClient) GetBlockTransactionCountByNumber(
 }
 
 type ProxyTransactionInfo struct {
-	BlockHash        common.Hash
-	BlockNumber      uint64
+	BlockHash        common.Hash `etherscan:"blockHash"`
+	BlockNumber      uint64      `etherscan:"blockNumber,hex"`
 	From             common.Address
-	Gas              *big.Int
-	GasPrice         *big.Int
+	Gas              *big.Int `etherscan:"gas,hex"`
+	GasPrice         *big.Int `etherscan:"gasPrice,hex"`
 	Hash             common.Hash
 	Input            []byte
-	Nonce            uint64
+	Nonce            uint64 `etherscan:"nonce,hex"`
 	To               common.Address
-	TransactionIndex uint64
-	Value            *big.Int
-	Type             uint32
-	V                uint32
-	R                *big.Int
-	S                *big.Int
-}
-
-type proxyTransactionResult struct {
-	BlockHash        common.Hash    `json:"blockHash"`
-	BlockNumber      hexutil.Uint64 `json:"blockNumber"`
-	From             common.Address `json:"from"`
-	Gas              *hexutil.Big   `json:"gas"`
-	GasPrice         *hexutil.Big   `json:"gasPrice"`
-	Hash             common.Hash    `json:"hash"`
-	Input            hexutil.Bytes  `json:"input"`
-	Nonce            hexutil.Uint64 `json:"nonce"`
-	To               common.Address `json:"to"`
-	TransactionIndex hexutil.Uint64 `json:"transactionIndex"`
-	Value            *hexutil.Big   `json:"value"`
-	Type             hexutil.Uint   `json:"type"`
-	V                hexutil.Uint   `json:"v"`
-	R                *hexutil.Big   `json:"r"`
-	S                *hexutil.Big   `json:"s"`
-}
-
-func (res *proxyTransactionResult) toInfo() *ProxyTransactionInfo {
-	return &ProxyTransactionInfo{
-		BlockHash:        res.BlockHash,
-		BlockNumber:      uint64(res.BlockNumber),
-		From:             res.From,
-		Gas:              res.Gas.ToInt(),
-		GasPrice:         res.GasPrice.ToInt(),
-		Hash:             res.Hash,
-		Input:            res.Input,
-		Nonce:            uint64(res.Nonce),
-		To:               res.To,
-		TransactionIndex: uint64(res.TransactionIndex),
-		Value:            res.Value.ToInt(),
-		Type:             uint32(res.Type),
-		V:                uint32(res.V),
-		R:                res.R.ToInt(),
-		S:                res.S.ToInt(),
-	}
+	TransactionIndex uint64   `etherscan:"transactionIndex,hex"`
+	Value            *big.Int `etherscan:"value,hex"`
+	Type             uint32   `etherscan:"type,hex"`
+	V                uint32   `etherscan:"v,hex"`
+	R                *big.Int `etherscan:"r,hex"`
+	S                *big.Int `etherscan:"s,hex"`
 }
 
 func (c *ProxyClient) GetTransactionByHash(
@@ -305,12 +190,12 @@ func (c *ProxyClient) GetTransactionByHash(
 		return nil, err
 	}
 
-	var result proxyTransactionResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(ProxyTransactionInfo)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toInfo(), nil
+	return result, nil
 }
 
 func (c *ProxyClient) GetTransactionByBlockNumberAndIndex(
@@ -325,12 +210,12 @@ func (c *ProxyClient) GetTransactionByBlockNumberAndIndex(
 		return nil, err
 	}
 
-	var result proxyTransactionResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(ProxyTransactionInfo)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toInfo(), nil
+	return result, nil
 }
 
 type TxCountRequest struct {
@@ -379,75 +264,34 @@ func (c *ProxyClient) SendRawTransaction(
 }
 
 type ProxyTransactionReceipt struct {
-	BlockHash         common.Hash
-	BlockNumber       uint64
-	ContractAddress   *common.Address
-	CumulativeGasUsed *big.Int
-	EffectiveGasPrice *big.Int
+	BlockHash         common.Hash     `etherscan:"blockHash"`
+	BlockNumber       uint64          `etherscan:"blockNumber,hex"`
+	ContractAddress   *common.Address `etherscan:"contractAddress"`
+	CumulativeGasUsed *big.Int        `etherscan:"cumulativeGasUsed,hex"`
+	EffectiveGasPrice *big.Int        `etherscan:"effectiveGasPrice,hex"`
 	From              common.Address
-	GasUsed           *big.Int
+	GasUsed           *big.Int `etherscan:"gasUsed,hex"`
 	Logs              []ProxyTxLog
-	LogsBloom         []byte
-	Status            bool
+	LogsBloom         []byte `etherscan:"logsBloom"`
+	Status            bool   `etherscan:"status,hex"`
 	To                common.Address
-	TransactionHash   common.Hash
-	TransactionIndex  uint32
-	Type              uint32
+	TransactionHash   common.Hash `etherscan:"transactionHash"`
+	TransactionIndex  uint32      `etherscan:"transactionIndex,hex"`
+	Type              uint32      `etherscan:"type,hex"`
 }
 
 type ProxyTxLog struct {
 	Address             common.Address
-	BlockHash           common.Hash
-	BlockNumber         uint64
+	BlockHash           common.Hash `etherscan:"blockHash"`
+	BlockNumber         uint64      `etherscan:"blockNumber,hex"`
 	Data                []byte
-	LogIndex            uint32
+	LogIndex            uint32 `etherscan:"logIndex,hex"`
 	Removed             bool
 	Topics              []common.Hash
-	TransactionHash     common.Hash
-	TransactionIndex    uint32
-	TransactionLogIndex uint32
+	TransactionHash     common.Hash `etherscan:"transactionHash"`
+	TransactionIndex    uint32      `etherscan:"transactionIndex,hex"`
+	TransactionLogIndex uint32      `etherscan:"transactionLogIndex,hex"`
 	Type                string
-}
-
-type proxyTxReceiptResult struct {
-	BlockHash         common.Hash        `json:"blockHash"`
-	BlockNumber       hexutil.Uint64     `json:"blockNumber"`
-	ContractAddress   *common.Address    `json:"contractAddress"`
-	CumulativeGasUsed *hexutil.Big       `json:"cumulativeGasUsed"`
-	EffectiveGasPrice *hexutil.Big       `json:"effectiveGasPrice"`
-	From              common.Address     `json:"from"`
-	GasUsed           *hexutil.Big       `json:"gasUsed"`
-	Logs              []proxyTxLogResult `json:"logs"`
-	LogsBloom         hexutil.Bytes      `json:"logsBloom"`
-	Status            hexutil.Uint       `json:"status"`
-	To                common.Address     `json:"to"`
-	TransactionHash   common.Hash        `json:"transactionHash"`
-	TransactionIndex  hexutil.Uint       `json:"transactionIndex"`
-	Type              hexutil.Uint       `json:"type"`
-}
-
-func (res *proxyTxReceiptResult) toReceipt() *ProxyTransactionReceipt {
-	logs := make([]ProxyTxLog, len(res.Logs))
-	for i := range res.Logs {
-		logs[i] = *res.Logs[i].toLog()
-	}
-
-	return &ProxyTransactionReceipt{
-		BlockHash:         res.BlockHash,
-		BlockNumber:       uint64(res.BlockNumber),
-		ContractAddress:   res.ContractAddress,
-		CumulativeGasUsed: res.CumulativeGasUsed.ToInt(),
-		EffectiveGasPrice: res.EffectiveGasPrice.ToInt(),
-		From:              res.From,
-		GasUsed:           res.GasUsed.ToInt(),
-		Logs:              logs,
-		LogsBloom:         res.LogsBloom,
-		Status:            res.Status != 0,
-		To:                res.To,
-		TransactionHash:   res.TransactionHash,
-		TransactionIndex:  uint32(res.TransactionIndex),
-		Type:              uint32(res.Type),
-	}
 }
 
 type proxyTxLogResult struct {
@@ -464,22 +308,6 @@ type proxyTxLogResult struct {
 	Type                string         `json:"type"`
 }
 
-func (log *proxyTxLogResult) toLog() *ProxyTxLog {
-	return &ProxyTxLog{
-		Address:             log.Address,
-		BlockHash:           log.BlockHash,
-		BlockNumber:         uint64(log.BlockNumber),
-		Data:                log.Data,
-		LogIndex:            uint32(log.LogIndex),
-		Removed:             log.Removed,
-		Topics:              log.Topics,
-		TransactionHash:     log.TransactionHash,
-		TransactionIndex:    uint32(log.TransactionIndex),
-		TransactionLogIndex: uint32(log.TransactionLogIndex),
-		Type:                log.Type,
-	}
-}
-
 func (c *ProxyClient) GetTransactionReceipt(
 	ctx context.Context, txHash common.Hash,
 ) (*ProxyTransactionReceipt, error) {
@@ -492,12 +320,12 @@ func (c *ProxyClient) GetTransactionReceipt(
 		return nil, err
 	}
 
-	var result proxyTxReceiptResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
+	result := new(ProxyTransactionReceipt)
+	if err := unmarshalResponse(rspData, result); err != nil {
 		return nil, err
 	}
 
-	return result.toReceipt(), nil
+	return result, nil
 }
 
 type CallRequest struct {
