@@ -238,139 +238,122 @@ func getFieldName(field reflect.StructField, info *tagInfo) string {
 	return strings.ToLower(field.Name)
 }
 
+func unmarshalField(
+	data []byte,
+	into interface{},
+	field reflect.Value,
+	setter func(interface{}),
+) error {
+	if err := json.Unmarshal(data, into); err != nil {
+		return errors.Wrap(err, "while unmarshalling json value")
+	}
+
+	if setter == nil {
+		return nil
+	}
+
+	setter(into)
+	return nil
+}
+
 func setFieldValue(field reflect.Value, data []byte, info *tagInfo) error {
 	if string(data) == "\"\"" {
 		return nil
 	}
 
+	if _, ok := field.Interface().([]byte); !ok && field.Kind() == reflect.Slice {
+		return unmarshalSliceRsp(data, field)
+	}
+
+	into, setter := getTypeUnmarshler(field, data, info)
+	if into == nil {
+		return nil
+	}
+
+	return unmarshalField(data, into, field, setter)
+}
+
+func setDirect(v interface{}, field reflect.Value) {
+	field.Set(reflect.ValueOf(v))
+}
+
+func getTypeUnmarshler(
+	field reflect.Value, data []byte, info *tagInfo,
+) (interface{}, func(interface{})) {
 	iField := field.Interface()
 	if _, ok := iField.(*big.Int); ok {
 		if info.hex {
-			var res hexutil.Big
-			if err := json.Unmarshal(data, &res); err != nil {
-				return errors.Wrap(err, "while unmarshalling as hexutil.Big")
+			return new(hexutil.Big), func(v interface{}) {
+				setDirect(v.(*hexutil.Big).ToInt(), field)
 			}
-
-			field.Set(reflect.ValueOf(res.ToInt()))
-			return nil
 		}
 
-		var res bigInt
-		if err := json.Unmarshal(data, &res); err != nil {
-			return errors.Wrap(err, "while unmarshalling as bigInt")
+		return new(bigInt), func(v interface{}) {
+			setDirect(v.(*bigInt).unwrap(), field)
 		}
-
-		field.Set(reflect.ValueOf(res.unwrap()))
-		return nil
 	}
 
 	if _, ok := iField.(time.Time); ok {
 		if info.hex {
-			var res hexTimestamp
-			if err := json.Unmarshal(data, &res); err != nil {
-				return errors.Wrap(err, "while unmarshalling as unix timestamp")
+			return new(hexTimestamp), func(v interface{}) {
+				setDirect(v.(*hexTimestamp).unwrap(), field)
 			}
-
-			field.Set(reflect.ValueOf(res.unwrap()))
-			return nil
 		}
 
-		var res unixTimestamp
-		if err := json.Unmarshal(data, &res); err != nil {
-			return errors.Wrap(err, "while unmarshalling as unix timestamp")
+		return new(unixTimestamp), func(v interface{}) {
+			setDirect(v.(*unixTimestamp).unwrap(), field)
 		}
-
-		field.Set(reflect.ValueOf(res.unwrap()))
-		return nil
 	}
 
 	if _, ok := iField.([]byte); ok {
 		if string(data) == "\"deprecated\"" {
-			return nil
+			return nil, nil
 		}
 
-		var res string
-		if err := json.Unmarshal(data, &res); err != nil {
-			return errors.Wrap(err, "while unmarshalling as string")
+		return new(hexutil.Bytes), func(v interface{}) {
+			setDirect([]byte(*v.(*hexutil.Bytes)), field)
 		}
-
-		decoded, err := hexutil.Decode(res)
-		if err != nil {
-			return errors.Wrap(err, "while decoding as hex")
-		}
-
-		field.SetBytes(decoded)
-		return nil
 	}
 
 	switch field.Kind() {
 	case reflect.Uint, reflect.Uint32, reflect.Uint64:
 		if info.num {
-			if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
-				return errors.Wrap(err, "while unmarshalling as uint")
-			}
-
-			return nil
+			return field.Addr().Interface(), nil
 		}
 
 		if info.hex {
-			var res hexUint
-			if err := json.Unmarshal(data, &res); err != nil {
-				return errors.Wrap(err, "while unmarshalling as hexUint")
+			return new(hexUint), func(v interface{}) {
+				field.SetUint(uint64(*v.(*hexUint)))
 			}
-
-			field.SetUint(uint64(res))
-			return nil
 		}
 
-		var res uintStr
-		if err := json.Unmarshal(data, &res); err != nil {
-			return errors.Wrap(err, "while unmarshalling as uintStr")
+		return new(uintStr), func(v interface{}) {
+			field.SetUint(uint64(*v.(*uintStr)))
 		}
-
-		field.SetUint(res.unwrap())
-		return nil
 
 	case reflect.Float32, reflect.Float64:
-		var res floatStr
-		if err := json.Unmarshal(data, &res); err != nil {
-			return errors.Wrap(err, "while unmarshalling as floatStr")
+		return new(floatStr), func(v interface{}) {
+			field.SetFloat(v.(*floatStr).unwrap())
 		}
-
-		field.SetFloat(res.unwrap())
-		return nil
 
 	case reflect.Bool:
 		if info.hex {
-			var res hexutil.Uint
-			if err := json.Unmarshal(data, &res); err != nil {
-				return errors.Wrap(err, "while unmarshalling as hexutil.Uint")
+			return new(hexutil.Uint), func(v interface{}) {
+				val := uint64(*v.(*hexutil.Uint))
+				field.SetBool(val != 0)
 			}
-
-			field.SetBool(uint64(res) != 0)
-			return nil
 		}
 
 		if info.num {
-			var res string
-			if err := json.Unmarshal(data, &res); err != nil {
-				return errors.Wrap(err, "while unmarshalling as string")
+			return new(uintStr), func(v interface{}) {
+				val := uint64(*v.(*uintStr))
+				field.SetBool(val != 0)
 			}
-
-			field.SetBool(res != "0")
-			return nil
 		}
 
-		return json.Unmarshal(data, field.Addr().Interface())
-
-	case reflect.Slice:
-		return unmarshalSliceRsp(data, field)
+		return field.Addr().Interface(), nil
 
 	default:
-		if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
-			return errors.Wrap(err, "while unmarshalling as value")
-		}
-
-		return nil
+		return field.Addr().Interface(), nil
 	}
 }
