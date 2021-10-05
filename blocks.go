@@ -2,10 +2,8 @@ package etherscan
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -35,21 +33,17 @@ type UncleReward struct {
 func (c *BlocksClient) GetBlockRewards(
 	ctx context.Context, blockNumber uint64,
 ) (*BlockRewards, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: blocksModule,
-		action: "getblockreward",
-		other:  map[string]string{"blockno": strconv.FormatUint(blockNumber, 10)},
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	result := new(BlockRewards)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
+	req := struct{ Blockno uint64 }{blockNumber}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  blocksModule,
+		action:  "getblockreward",
+		request: req,
+		result:  result,
+	})
+
+	return result, err
 }
 
 type BlockCountdown struct {
@@ -62,21 +56,17 @@ type BlockCountdown struct {
 func (c *BlocksClient) GetBlockCountdown(
 	ctx context.Context, blockNumber uint64,
 ) (*BlockCountdown, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: blocksModule,
-		action: "getblockcountdown",
-		other:  map[string]string{"blockno": strconv.FormatUint(blockNumber, 10)},
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	result := new(BlockCountdown)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
+	req := struct{ Blockno uint64 }{blockNumber}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  blocksModule,
+		action:  "getblockcountdown",
+		request: req,
+		result:  result,
+	})
+
+	return result, err
 }
 
 type BlockNumberRequest struct {
@@ -107,17 +97,15 @@ func (c ClosestAvailableBlock) String() string {
 func (c *BlocksClient) GetBlockNumber(
 	ctx context.Context, req *BlockNumberRequest,
 ) (uint64, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: blocksModule,
-		action: "getblocknobytime",
-		other:  marshalRequest(req),
+	var result uintStr
+
+	err := c.api.call(ctx, &callParams{
+		module:  blocksModule,
+		action:  "getblocknobytime",
+		request: req,
+		result:  &result,
 	})
 	if err != nil {
-		return 0, err
-	}
-
-	var result uintStr
-	if err := json.Unmarshal(rspData, &result); err != nil {
 		return 0, err
 	}
 
@@ -137,22 +125,15 @@ type AverageBlockSize struct {
 
 func (c *BlocksClient) GetDailyAverageBlockSize(
 	ctx context.Context, dates *DateRange,
-) ([]AverageBlockSize, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: blocksModule,
-		action: "dailyavgblocksize",
-		other:  marshalRequest(dates),
+) (result []AverageBlockSize, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  blocksModule,
+		action:  "dailyavgblocksize",
+		request: dates,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []AverageBlockSize
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type BlockCount struct {
@@ -162,22 +143,15 @@ type BlockCount struct {
 
 func (c *BlocksClient) GetDailyBlockCount(
 	ctx context.Context, dates *DateRange,
-) ([]BlockCount, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: blocksModule,
-		action: "dailyblkcount",
-		other:  marshalRequest(dates),
+) (result []BlockCount, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  blocksModule,
+		action:  "dailyblkcount",
+		request: dates,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []BlockCount
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type DailyBlockRewards struct {
@@ -187,22 +161,15 @@ type DailyBlockRewards struct {
 
 func (c *BlocksClient) GetDailyBlockRewards(
 	ctx context.Context, dates *DateRange,
-) ([]DailyBlockRewards, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: blocksModule,
-		action: "dailyblockrewards",
-		other:  marshalRequest(dates),
+) (result []DailyBlockRewards, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  blocksModule,
+		action:  "dailyblockrewards",
+		request: dates,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []DailyBlockRewards
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type DailyBlockTime struct {
@@ -212,22 +179,15 @@ type DailyBlockTime struct {
 
 func (c *BlocksClient) GetDailyAverageBlockTime(
 	ctx context.Context, dates *DateRange,
-) ([]DailyBlockTime, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: blocksModule,
-		action: "dailyavgblocktime",
-		other:  marshalRequest(dates),
+) (result []DailyBlockTime, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  blocksModule,
+		action:  "dailyavgblocktime",
+		request: dates,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []DailyBlockTime
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type DailyUnclesCount struct {
@@ -238,20 +198,13 @@ type DailyUnclesCount struct {
 
 func (c *BlocksClient) GetDailyUnclesCount(
 	ctx context.Context, dates *DateRange,
-) ([]DailyUnclesCount, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: blocksModule,
-		action: "dailyuncleblkcount",
-		other:  marshalRequest(dates),
+) (result []DailyUnclesCount, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  blocksModule,
+		action:  "dailyuncleblkcount",
+		request: dates,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []DailyUnclesCount
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
