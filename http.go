@@ -38,6 +38,28 @@ func newAPIClient(params *Params) *apiClient {
 	}
 }
 
+type callParams struct {
+	module  string
+	action  string
+	request interface{}
+	result  interface{}
+}
+
+func (r apiClient) call(
+	ctx context.Context, params *callParams,
+) error {
+	rspData, err := r.get(ctx, &requestParams{
+		module: params.module,
+		action: params.action,
+		other:  marshalRequest(params.request),
+	})
+	if err != nil {
+		return err
+	}
+
+	return unmarshalResponse(rspData, params.result)
+}
+
 type requestParams struct {
 	module string
 	action string

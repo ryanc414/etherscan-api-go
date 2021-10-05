@@ -78,22 +78,14 @@ type MultiBalanceResponse struct {
 
 func (c *AccountsClient) GetMultiETHBalances(
 	ctx context.Context, req *MultiETHBalancesRequest,
-) ([]MultiBalanceResponse, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "balancemulti",
-		other:  marshalRequest(req),
+) (result []MultiBalanceResponse, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "balancemulti",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	var response []MultiBalanceResponse
-	if err := unmarshalResponse(rspData, &response); err != nil {
-		return nil, err
-	}
-
-	return response, nil
+	return result, err
 }
 
 type ListTxRequest struct {
@@ -156,62 +148,42 @@ type InternalTxInfo struct {
 
 func (c *AccountsClient) ListNormalTransactions(
 	ctx context.Context, req *ListTxRequest,
-) ([]NormalTxInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "txlist",
-		other:  marshalRequest(req),
+) (result []NormalTxInfo, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "txlist",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []NormalTxInfo
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 func (c *AccountsClient) ListInternalTransactions(
 	ctx context.Context, req *ListTxRequest,
-) ([]InternalTxInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "txlistinternal",
-		other:  marshalRequest(req),
+) (result []InternalTxInfo, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "txlistinternal",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []InternalTxInfo
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 func (c *AccountsClient) GetInternalTxsByHash(
 	ctx context.Context, hash common.Hash,
-) ([]InternalTxInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "txlistinternal",
-		other:  map[string]string{"txhash": hash.String()},
+) (result []InternalTxInfo, err error) {
+	req := struct{ TxHash common.Hash }{hash}
+	err = c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "txlistinternal",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []InternalTxInfo
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type BlockRangeRequest struct {
@@ -223,22 +195,15 @@ type BlockRangeRequest struct {
 func (c *AccountsClient) GetInternalTxsByBlockRange(
 	ctx context.Context,
 	req *BlockRangeRequest,
-) ([]InternalTxInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "txlistinternal",
-		other:  marshalRequest(req),
+) (result []InternalTxInfo, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "txlistinternal",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []InternalTxInfo
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type TokenTransfersRequest struct {
@@ -256,22 +221,15 @@ type TokenTransferInfo struct {
 
 func (c *AccountsClient) ListTokenTransfers(
 	ctx context.Context, req *TokenTransfersRequest,
-) ([]TokenTransferInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: "account",
-		action: "tokentx",
-		other:  marshalRequest(req),
+) (result []TokenTransferInfo, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  "account",
+		action:  "tokentx",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []TokenTransferInfo
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type ListNFTTransferRequest struct {
@@ -287,26 +245,19 @@ type NFTTransferInfo struct {
 
 func (c *AccountsClient) ListNFTTransfers(
 	ctx context.Context, req *ListNFTTransferRequest,
-) ([]NFTTransferInfo, error) {
+) (result []NFTTransferInfo, err error) {
 	if req.Address == nil && req.ContractAddress == nil {
 		return nil, errors.New("at least one of Address or ContractAddress must be specifide")
 	}
 
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "tokennfttx",
-		other:  marshalRequest(req),
+	err = c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "tokennfttx",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []NFTTransferInfo
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type ListBlocksRequest struct {
@@ -335,48 +286,22 @@ func (b BlockType) String() string {
 }
 
 type BlockInfo struct {
-	BlockNumber uint64
+	BlockNumber uint64 `etherscan:"blockNumber"`
 	Timestamp   time.Time
-	BlockReward *big.Int
-}
-
-type blockResult struct {
-	BlockNumber uintStr
-	Timestamp   unixTimestamp
-	BlockReward *bigInt
-}
-
-func (res *blockResult) toInfo() *BlockInfo {
-	return &BlockInfo{
-		BlockNumber: res.BlockNumber.unwrap(),
-		Timestamp:   res.Timestamp.unwrap(),
-		BlockReward: res.BlockReward.unwrap(),
-	}
+	BlockReward *big.Int `etherscan:"blockReward"`
 }
 
 func (c *AccountsClient) ListBlocksMined(
 	ctx context.Context, req *ListBlocksRequest,
-) ([]BlockInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "getminedblocks",
-		other:  marshalRequest(req),
+) (result []BlockInfo, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "getminedblocks",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []blockResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	blocks := make([]BlockInfo, len(result))
-	for i := range result {
-		blocks[i] = *result[i].toInfo()
-	}
-
-	return blocks, nil
+	return result, err
 }
 
 type HistoricalETHRequest struct {
@@ -386,20 +311,13 @@ type HistoricalETHRequest struct {
 
 func (c *AccountsClient) GetHistoricalETHBalance(
 	ctx context.Context, req *HistoricalETHRequest,
-) (*big.Int, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "balancehistory",
-		other:  marshalRequest(req),
+) (result *big.Int, err error) {
+	err = c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "balancehistory",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result bigInt
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result.unwrap(), nil
+	return result, err
 }

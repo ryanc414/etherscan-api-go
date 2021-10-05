@@ -153,6 +153,11 @@ func unmarshalResponse(data []byte, v interface{}) error {
 		return errors.New("value must be a pointer")
 	}
 
+	var u json.Unmarshaler
+	if rspType.Implements(reflect.TypeOf(&u).Elem()) {
+		return json.Unmarshal(data, v)
+	}
+
 	rspVal := reflect.ValueOf(v).Elem()
 
 	switch rspVal.Kind() {
