@@ -172,7 +172,7 @@ func unmarshalResponse(data []byte, v interface{}) error {
 		return unmarshalSliceRsp(data, rspVal)
 
 	default:
-		return errors.New("value must be a pointer to struct or slice")
+		return json.Unmarshal(data, v)
 	}
 }
 

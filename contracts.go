@@ -2,7 +2,6 @@ package etherscan
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -15,22 +14,16 @@ const contractsModule = "contract"
 
 func (c ContractsClient) GetContractABI(
 	ctx context.Context, address common.Address,
-) (string, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: contractsModule,
-		action: "getabi",
-		other:  map[string]string{"address": address.String()},
+) (result string, err error) {
+	req := struct{ Address common.Address }{address}
+	err = c.api.call(ctx, &callParams{
+		module:  contractsModule,
+		action:  "getabi",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return "", err
-	}
 
-	var abi string
-	if err := json.Unmarshal(rspData, &abi); err != nil {
-		return "", err
-	}
-
-	return abi, nil
+	return result, err
 }
 
 type ContractInfo struct {
@@ -51,20 +44,14 @@ type ContractInfo struct {
 
 func (c ContractsClient) GetContractSourceCode(
 	ctx context.Context, address common.Address,
-) ([]ContractInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: contractsModule,
-		action: "getsourcecode",
-		other:  map[string]string{"address": address.String()},
+) (result []ContractInfo, err error) {
+	req := struct{ Address common.Address }{address}
+	err = c.api.call(ctx, &callParams{
+		module:  contractsModule,
+		action:  "getsourcecode",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	var result []ContractInfo
-	if err := unmarshalResponse(rspData, &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, err
 }
