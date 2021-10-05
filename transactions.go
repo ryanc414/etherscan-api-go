@@ -2,7 +2,6 @@ package etherscan
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -21,43 +20,37 @@ type ExecutionStatus struct {
 func (c *TransactionsClient) GetExecutionStatus(
 	ctx context.Context, txHash common.Hash,
 ) (*ExecutionStatus, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: transactionModule,
-		action: "getstatus",
-		other:  map[string]string{"txhash": txHash.String()},
-	})
-	if err != nil {
-		return nil, err
-	}
-
+	req := struct{ TxHash common.Hash }{txHash}
 	result := new(ExecutionStatus)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  transactionModule,
+		action:  "getstatus",
+		request: req,
+		result:  result,
+	})
+
+	return result, err
 }
 
 type txReceiptStatusResult struct {
-	Status string `json:"status"`
+	Status bool `etherscan:"status,num"`
 }
 
 func (c *TransactionsClient) GetTxReceiptStatus(
 	ctx context.Context, txHash common.Hash,
 ) (bool, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: transactionModule,
-		action: "gettxreceiptstatus",
-		other:  map[string]string{"txhash": txHash.String()},
+	req := struct{ TxHash common.Hash }{txHash}
+	result := new(txReceiptStatusResult)
+	err := c.api.call(ctx, &callParams{
+		module:  transactionModule,
+		action:  "gettxreceiptstatus",
+		request: req,
+		result:  result,
 	})
 	if err != nil {
 		return false, err
 	}
 
-	var result txReceiptStatusResult
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return false, err
-	}
-
-	return result.Status != "0", nil
+	return result.Status, nil
 }
