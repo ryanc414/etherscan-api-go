@@ -12,6 +12,10 @@ import (
 )
 
 func marshalRequest(req interface{}) map[string]string {
+	if req == nil {
+		return nil
+	}
+
 	reqType := reflect.TypeOf(req)
 	reqVal := reflect.ValueOf(req)
 

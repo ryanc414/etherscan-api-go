@@ -2,7 +2,6 @@ package etherscan
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"time"
 
@@ -20,20 +19,14 @@ const proxyModule = "proxy"
 var errNotImplemented = errors.New("not implemented")
 
 func (c *ProxyClient) BlockNumber(ctx context.Context) (uint64, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
+	var result hexutil.Uint64
+	err := c.api.call(ctx, &callParams{
 		module: proxyModule,
 		action: "eth_blockNumber",
+		result: &result,
 	})
-	if err != nil {
-		return 0, errors.Wrap(err, "while getting block number")
-	}
 
-	var result hexutil.Uint64
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return 0, err
-	}
-
-	return uint64(result), nil
+	return uint64(result), err
 }
 
 type ProxyBaseBlockInfo struct {
@@ -64,27 +57,25 @@ type ProxyFullBlockInfo struct {
 	Transactions []ProxyTransactionInfo
 }
 
+type getBlockByNumRequest struct {
+	Number  uint64 `etherscan:"tag,hex"`
+	Boolean bool
+}
+
 func (c *ProxyClient) GetBlockByNumberFull(
 	ctx context.Context, number uint64,
 ) (*ProxyFullBlockInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getBlockByNumber",
-		other: map[string]string{
-			"tag":     hexutil.EncodeUint64(number),
-			"boolean": "true",
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
+	req := getBlockByNumRequest{Number: number, Boolean: true}
 	result := new(ProxyFullBlockInfo)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getBlockByNumber",
+		request: req,
+		result:  result,
+	})
+
+	return result, err
 }
 
 type ProxySummaryBlockInfo struct {
@@ -95,24 +86,17 @@ type ProxySummaryBlockInfo struct {
 func (c *ProxyClient) GetBlockByNumberSummary(
 	ctx context.Context, number uint64,
 ) (*ProxySummaryBlockInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getBlockByNumber",
-		other: map[string]string{
-			"tag":     hexutil.EncodeUint64(number),
-			"boolean": "false",
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
+	req := getBlockByNumRequest{Number: number, Boolean: false}
 	result := new(ProxySummaryBlockInfo)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getBlockByNumber",
+		request: req,
+		result:  result,
+	})
+
+	return result, err
 }
 
 type BlockNumberAndIndex struct {
@@ -123,41 +107,36 @@ type BlockNumberAndIndex struct {
 func (c *ProxyClient) GetUncleByBlockNumberAndIndex(
 	ctx context.Context, req *BlockNumberAndIndex,
 ) (*ProxyBaseBlockInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getUncleByBlockNumberAndIndex",
-		other:  marshalRequest(req),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	result := new(ProxyBaseBlockInfo)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getUncleByBlockNumberAndIndex",
+		request: req,
+		result:  result,
+	})
+
+	return result, err
+}
+
+type blockTxCountRequest struct {
+	Tag uint64 `etherscan:"tag,hex"`
 }
 
 func (c *ProxyClient) GetBlockTransactionCountByNumber(
 	ctx context.Context, number uint64,
 ) (uint32, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getBlockTransactionCountByNumber",
-		other:  map[string]string{"tag": hexutil.EncodeUint64(number)},
-	})
-	if err != nil {
-		return 0, err
-	}
-
+	req := blockTxCountRequest{number}
 	var result hexutil.Uint
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return 0, err
-	}
 
-	return uint32(result), nil
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getBlockTransactionCountByNumber",
+		request: req,
+		result:  &result,
+	})
+
+	return uint32(result), err
 }
 
 type ProxyTransactionInfo struct {
@@ -181,41 +160,31 @@ type ProxyTransactionInfo struct {
 func (c *ProxyClient) GetTransactionByHash(
 	ctx context.Context, txHash common.Hash,
 ) (*ProxyTransactionInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getTransactionByHash",
-		other:  map[string]string{"txhash": txHash.String()},
-	})
-	if err != nil {
-		return nil, err
-	}
-
+	req := struct{ TxHash common.Hash }{txHash}
 	result := new(ProxyTransactionInfo)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getTransactionByHash",
+		request: req,
+		result:  result,
+	})
+
+	return result, err
 }
 
 func (c *ProxyClient) GetTransactionByBlockNumberAndIndex(
 	ctx context.Context, req *BlockNumberAndIndex,
 ) (*ProxyTransactionInfo, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getTransactionByBlockNumberAndIndex",
-		other:  marshalRequest(req),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	result := new(ProxyTransactionInfo)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getTransactionByBlockNumberAndIndex",
+		request: req,
+		result:  result,
+	})
 
-	return result, nil
+	return result, err
 }
 
 type TxCountRequest struct {
@@ -226,41 +195,29 @@ type TxCountRequest struct {
 func (c *ProxyClient) GetTransactionCount(
 	ctx context.Context, req *TxCountRequest,
 ) (uint64, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getTransactionCount",
-		other:  marshalRequest(req),
-	})
-	if err != nil {
-		return 0, err
-	}
-
 	var result hexutil.Uint64
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return 0, err
-	}
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getTransactionCount",
+		request: req,
+		result:  &result,
+	})
 
-	return uint64(result), nil
+	return uint64(result), err
 }
 
 func (c *ProxyClient) SendRawTransaction(
 	ctx context.Context, data []byte,
-) (common.Hash, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_sendRawTransaction",
-		other:  map[string]string{"hex": hexutil.Encode(data)},
+) (result common.Hash, err error) {
+	req := struct{ Hex []byte }{data}
+	err = c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_sendRawTransaction",
+		request: req,
+		result:  &result,
 	})
-	if err != nil {
-		return common.Hash{}, err
-	}
 
-	var result common.Hash
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return common.Hash{}, err
-	}
-
-	return result, nil
+	return result, err
 }
 
 type ProxyTransactionReceipt struct {
@@ -311,21 +268,17 @@ type proxyTxLogResult struct {
 func (c *ProxyClient) GetTransactionReceipt(
 	ctx context.Context, txHash common.Hash,
 ) (*ProxyTransactionReceipt, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getTransactionReceipt",
-		other:  map[string]string{"txhash": txHash.String()},
-	})
-	if err != nil {
-		return nil, err
-	}
-
+	req := struct{ TxHash common.Hash }{txHash}
 	result := new(ProxyTransactionReceipt)
-	if err := unmarshalResponse(rspData, result); err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getTransactionReceipt",
+		request: req,
+		result:  result,
+	})
+
+	return result, err
 }
 
 type CallRequest struct {
@@ -337,21 +290,16 @@ type CallRequest struct {
 func (c *ProxyClient) Call(
 	ctx context.Context, req *CallRequest,
 ) ([]byte, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_call",
-		other:  marshalRequest(req),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	var result hexutil.Bytes
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_call",
+		request: req,
+		result:  &result,
+	})
+
+	return result, err
 }
 
 type GetCodeRequest struct {
@@ -362,21 +310,15 @@ type GetCodeRequest struct {
 func (c *ProxyClient) GetCode(
 	ctx context.Context, req *GetCodeRequest,
 ) ([]byte, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getCode",
-		other:  marshalRequest(req),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	var result hexutil.Bytes
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return nil, err
-	}
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getCode",
+		request: req,
+		result:  &result,
+	})
 
-	return result, nil
+	return result, err
 }
 
 type GetStorageRequest struct {
@@ -388,34 +330,25 @@ type GetStorageRequest struct {
 func (c *ProxyClient) GetStorageAt(
 	ctx context.Context, req *GetStorageRequest,
 ) ([]byte, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_getStorageAt",
-		other:  marshalRequest(req),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	var result hexutil.Bytes
-	if err := json.Unmarshal(rspData, &result); err != nil {
-		return nil, err
-	}
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_getStorageAt",
+		request: req,
+		result:  &result,
+	})
 
-	return result, nil
+	return result, err
 }
 
 func (c *ProxyClient) GasPrice(ctx context.Context) (*big.Int, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
+	var result hexutil.Big
+	err := c.api.call(ctx, &callParams{
 		module: proxyModule,
 		action: "eth_gasPrice",
+		result: &result,
 	})
 	if err != nil {
-		return nil, err
-	}
-
-	var result hexutil.Big
-	if err := json.Unmarshal(rspData, &result); err != nil {
 		return nil, err
 	}
 
@@ -433,17 +366,15 @@ type EstimateGasRequest struct {
 func (c *ProxyClient) EstimateGas(
 	ctx context.Context, req *EstimateGasRequest,
 ) (*big.Int, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: proxyModule,
-		action: "eth_estimateGas",
-		other:  marshalRequest(req),
+	var result hexutil.Big
+
+	err := c.api.call(ctx, &callParams{
+		module:  proxyModule,
+		action:  "eth_estimateGas",
+		request: req,
+		result:  &result,
 	})
 	if err != nil {
-		return nil, err
-	}
-
-	var result hexutil.Big
-	if err := json.Unmarshal(rspData, &result); err != nil {
 		return nil, err
 	}
 
