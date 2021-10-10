@@ -56,9 +56,11 @@ func (m *mockServer) handleRequest(req *http.Request) (*purehttp.Response, error
 	}
 
 	q := req.URL.Query()
-	if q.Get("module") != "account" {
+
+	module := q.Get("module")
+	if module != m.module {
 		return &purehttp.Response{
-			Body:       []byte("unknown model\n"),
+			Body:       []byte(fmt.Sprintf("unknown module %s\n", module)),
 			StatusCode: http.StatusNotFound,
 		}, nil
 	}
