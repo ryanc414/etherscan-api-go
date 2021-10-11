@@ -1,0 +1,14 @@
+([]etherscan.MultiBalanceResponse) (len=3) {
+  (etherscan.MultiBalanceResponse) {
+    Account: (common.Address) (len=20) 0xddBd2B932c763bA5b1b7AE3B362eac3e8d40121A,
+    Balance: (*big.Int)(40891626854930000000000)
+  },
+  (etherscan.MultiBalanceResponse) {
+    Account: (common.Address) (len=20) 0x63a9975ba31B0b9626b34300f7f627147dF1F526,
+    Balance: (*big.Int)(332567136222827062478)
+  },
+  (etherscan.MultiBalanceResponse) {
+    Account: (common.Address) (len=20) 0x198eF1ec325a96CC354c7266A038BE8B5C558F67,
+    Balance: (*big.Int)(0)
+  }
+}

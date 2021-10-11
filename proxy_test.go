@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/bradleyjkemp/cupaloy"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ryanc414/etherscan-api-go"
@@ -36,27 +37,13 @@ func TestProxy(t *testing.T) {
 	t.Run("GetBlockByNumberFull", func(t *testing.T) {
 		block, err := client.Proxy.GetBlockByNumberFull(ctx, 68943)
 		require.NoError(t, err)
-
-		expectedBlockHash := common.HexToHash("0x7eb7c23a5ac2f2d70aa1ba4e5c56d89de5ac993590e5f6e79c394e290d998ba8")
-		assert.Equal(t, expectedBlockHash, block.Hash)
-
-		assert.Len(t, block.Transactions, 1)
-
-		expectedTxHash := common.HexToHash("0xa442249820de6be754da81eafbd44a865773e4b23d7c0522d31fd03977823008")
-		assert.Equal(t, expectedTxHash, block.Transactions[0].Hash)
+		cupaloy.SnapshotT(t, block)
 	})
 
 	t.Run("GetBlockByNumberSummary", func(t *testing.T) {
 		block, err := client.Proxy.GetBlockByNumberSummary(ctx, 68943)
 		require.NoError(t, err)
-
-		expectedBlockHash := common.HexToHash("0x7eb7c23a5ac2f2d70aa1ba4e5c56d89de5ac993590e5f6e79c394e290d998ba8")
-		assert.Equal(t, expectedBlockHash, block.Hash)
-
-		assert.Len(t, block.Transactions, 1)
-
-		expectedTxHash := common.HexToHash("0xa442249820de6be754da81eafbd44a865773e4b23d7c0522d31fd03977823008")
-		assert.Equal(t, expectedTxHash, block.Transactions[0])
+		cupaloy.SnapshotT(t, block)
 	})
 
 	t.Run("GetUncleByBlockNumberAndIndex", func(t *testing.T) {
@@ -66,8 +53,7 @@ func TestProxy(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		expectedHash := common.HexToHash("0x1da88e3581315d009f1cb600bf06f509cd27a68cb3d6437bda8698d04089f14a")
-		assert.Equal(t, expectedHash, uncle.Hash)
+		cupaloy.SnapshotT(t, uncle)
 	})
 
 	t.Run("GetBlockTransactionCount", func(t *testing.T) {
@@ -81,7 +67,7 @@ func TestProxy(t *testing.T) {
 		txInfo, err := client.Proxy.GetTransactionByHash(ctx, txHash)
 		require.NoError(t, err)
 
-		assert.Equal(t, 0, txInfo.Value.Cmp(big.NewInt(10000000000)))
+		cupaloy.SnapshotT(t, txInfo)
 	})
 
 	t.Run("GetTxByBlockNumberAndIndex", func(t *testing.T) {
@@ -91,7 +77,7 @@ func TestProxy(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, 0, txInfo.Value.Cmp(big.NewInt(10000000000)))
+		cupaloy.SnapshotT(t, txInfo)
 	})
 
 	t.Run("GetTransactionCount", func(t *testing.T) {
@@ -117,11 +103,7 @@ func TestProxy(t *testing.T) {
 		receipt, err := client.Proxy.GetTransactionReceipt(ctx, txHash)
 		require.NoError(t, err)
 
-		address := common.HexToAddress("0xc778417e063141139fce010982780140aa0cd5ab")
-		assert.Equal(t, address, receipt.To)
-
-		require.Len(t, receipt.Logs, 1)
-		require.Len(t, receipt.Logs[0].Topics, 2)
+		cupaloy.SnapshotT(t, receipt)
 	})
 
 	t.Run("Call", func(t *testing.T) {

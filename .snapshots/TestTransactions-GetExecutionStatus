@@ -1,0 +1,4 @@
+(*etherscan.ExecutionStatus)({
+  IsError: (bool) true,
+  ErrDescription: (string) (len=20) "Bad jump destination"
+})

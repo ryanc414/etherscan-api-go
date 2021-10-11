@@ -1,0 +1,10 @@
+([]etherscan.DailyBlockTime) (len=2) {
+  (etherscan.DailyBlockTime) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    BlockTimeSeconds: (float64) 17.67
+  },
+  (etherscan.DailyBlockTime) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    BlockTimeSeconds: (float64) 19.61
+  }
+}

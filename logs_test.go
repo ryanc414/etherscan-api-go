@@ -5,9 +5,9 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/bradleyjkemp/cupaloy"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ryanc414/etherscan-api-go"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,40 +36,26 @@ func TestLogs(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, logs, 2)
 
-		assert.Equal(
-			t,
-			common.HexToHash("0x0b03498648ae2da924f961dda00dc6bb0a8df15519262b7e012b7d67f4bb7e83"),
-			logs[0].TransactionHash,
-		)
+		cupaloy.SnapshotT(t, logs)
+	})
 
-		assert.Equal(
-			t,
-			common.HexToHash("0x8c72ea19b48947c4339077bd9c9c09a780dfbdb1cafe68db4d29cdf2754adc11"),
-			logs[1].TransactionHash,
-		)
-
-		t.Run("GetLogsFixed", func(t *testing.T) {
-			topic1 := common.HexToHash("0x72657075746174696f6e00000000000000000000000000000000000000000000")
-			logs, err := client.Logs.GetLogs(ctx, &etherscan.LogsRequest{
-				FromBlock: etherscan.LogsBlockParam{Number: 379224},
-				ToBlock:   etherscan.LogsBlockParam{Number: 400000},
-				Address:   common.HexToAddress("0x33990122638b9132ca29c723bdf037f1a891a70c"),
-				Topics:    []common.Hash{topic0, topic1},
-				Comparisons: []etherscan.TopicComparison{
-					{
-						Topics:   [2]uint8{0, 1},
-						Operator: etherscan.ComparisonOperatorAnd,
-					},
+	t.Run("GetLogsFixed", func(t *testing.T) {
+		topic1 := common.HexToHash("0x72657075746174696f6e00000000000000000000000000000000000000000000")
+		logs, err := client.Logs.GetLogs(ctx, &etherscan.LogsRequest{
+			FromBlock: etherscan.LogsBlockParam{Number: 379224},
+			ToBlock:   etherscan.LogsBlockParam{Number: 400000},
+			Address:   common.HexToAddress("0x33990122638b9132ca29c723bdf037f1a891a70c"),
+			Topics:    []common.Hash{topic0, topic1},
+			Comparisons: []etherscan.TopicComparison{
+				{
+					Topics:   [2]uint8{0, 1},
+					Operator: etherscan.ComparisonOperatorAnd,
 				},
-			})
-			require.NoError(t, err)
-			require.Len(t, logs, 1)
-
-			assert.Equal(
-				t,
-				common.HexToHash("0x0b03498648ae2da924f961dda00dc6bb0a8df15519262b7e012b7d67f4bb7e83"),
-				logs[0].TransactionHash,
-			)
+			},
 		})
+		require.NoError(t, err)
+		require.Len(t, logs, 1)
+
+		cupaloy.SnapshotT(t, logs)
 	})
 }

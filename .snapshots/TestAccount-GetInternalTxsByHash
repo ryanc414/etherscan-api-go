@@ -1,0 +1,19 @@
+([]etherscan.InternalTxInfo) (len=1) {
+  (etherscan.InternalTxInfo) {
+    TransactionInfo: (etherscan.TransactionInfo) {
+      BlockNumber: (uint64) 1743059,
+      Timestamp: (time.Time) 2016-06-21 07:11:38 +0100 BST,
+      Hash: (common.Hash) (len=32) 0x0000000000000000000000000000000000000000000000000000000000000000,
+      From: (common.Address) (len=20) 0x2caC6E4b11D6B58F6D3C1c9D5Fe8faa89F60E5a2,
+      To: (common.Address) (len=20) 0x66a1C3Eaf0f1ffC28D209c0763ed0Ca614F3B002,
+      Value: (*big.Int)(7106740000000000),
+      ContractAddress: (*common.Address)(<nil>),
+      Input: ([]uint8) <nil>,
+      Gas: (uint64) 2300,
+      GasUsed: (uint64) 0,
+      IsError: (bool) false
+    },
+    TraceID: (string) "",
+    Type: (string) (len=4) "call"
+  }
+}

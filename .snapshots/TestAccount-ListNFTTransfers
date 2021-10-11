@@ -1,0 +1,62 @@
+([]etherscan.NFTTransferInfo) (len=2) {
+  (etherscan.NFTTransferInfo) {
+    TokenTransferInfo: (etherscan.TokenTransferInfo) {
+      NormalTxInfo: (etherscan.NormalTxInfo) {
+        TransactionInfo: (etherscan.TransactionInfo) {
+          BlockNumber: (uint64) 4708120,
+          Timestamp: (time.Time) 2017-12-10 11:58:38 +0000 GMT,
+          Hash: (common.Hash) (len=32) 0x031e6968a8de362e4328d60dcc7f72f0d6fc84284c452f63176632177146de66,
+          From: (common.Address) (len=20) 0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C,
+          To: (common.Address) (len=20) 0x6975BE450864c02B4613023C2152EE0743572325,
+          Value: (*big.Int)(<nil>),
+          ContractAddress: (*common.Address)((len=20) 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d),
+          Input: ([]uint8) <nil>,
+          Gas: (uint64) 158820,
+          GasUsed: (uint64) 60508,
+          IsError: (bool) false
+        },
+        Nonce: (uint64) 0,
+        BlockHash: (common.Hash) (len=32) 0x4be19c278bfaead5cb0bc9476fa632e2447f6e6259e0303af210302d22779a24,
+        TransactionIndex: (uint64) 81,
+        GasPrice: (*big.Int)(40000000000),
+        TxReceiptStatus: (string) "",
+        CumulativeGasUsed: (uint64) 4880352,
+        Confirmations: (uint64) 7990490
+      },
+      TokenName: (string) "",
+      TokenSymbol: (string) "",
+      TokenDecimal: (uint32) 0
+    },
+    TokenID: (string) (len=6) "202106"
+  },
+  (etherscan.NFTTransferInfo) {
+    TokenTransferInfo: (etherscan.TokenTransferInfo) {
+      NormalTxInfo: (etherscan.NormalTxInfo) {
+        TransactionInfo: (etherscan.TransactionInfo) {
+          BlockNumber: (uint64) 4708161,
+          Timestamp: (time.Time) 2017-12-10 12:09:16 +0000 GMT,
+          Hash: (common.Hash) (len=32) 0x9626e7064b68b5463cf677e10815a0b394645a0bfa245f26a2de6074324e83ff,
+          From: (common.Address) (len=20) 0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C,
+          To: (common.Address) (len=20) 0x6975BE450864c02B4613023C2152EE0743572325,
+          Value: (*big.Int)(<nil>),
+          ContractAddress: (*common.Address)((len=20) 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d),
+          Input: ([]uint8) <nil>,
+          Gas: (uint64) 135963,
+          GasUsed: (uint64) 45508,
+          IsError: (bool) false
+        },
+        Nonce: (uint64) 1,
+        BlockHash: (common.Hash) (len=32) 0xe1c6cbc39a723496f4cbc3e70241012854f2e88b4d2d5f339d8f0a4a1cc406d8,
+        TransactionIndex: (uint64) 41,
+        GasPrice: (*big.Int)(40000000000),
+        TxReceiptStatus: (string) "",
+        CumulativeGasUsed: (uint64) 3359342,
+        Confirmations: (uint64) 7990449
+      },
+      TokenName: (string) "",
+      TokenSymbol: (string) "",
+      TokenDecimal: (uint32) 0
+    },
+    TokenID: (string) (len=6) "147739"
+  }
+}

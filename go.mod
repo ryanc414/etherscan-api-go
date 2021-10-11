@@ -3,6 +3,7 @@ module github.com/ryanc414/etherscan-api-go
 go 1.16
 
 require (
+	github.com/bradleyjkemp/cupaloy v2.3.0+incompatible // indirect
 	github.com/ethereum/go-ethereum v1.10.7
 	github.com/google/uuid v1.3.0
 	github.com/pkg/errors v0.9.1

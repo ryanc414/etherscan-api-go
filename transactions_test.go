@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/bradleyjkemp/cupaloy"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ryanc414/etherscan-api-go"
 	"github.com/stretchr/testify/assert"
@@ -30,8 +31,7 @@ func TestTransactions(t *testing.T) {
 		status, err := client.Transactions.GetExecutionStatus(ctx, txhash)
 		require.NoError(t, err)
 
-		assert.True(t, status.IsError)
-		assert.Equal(t, "Bad jump destination", status.ErrDescription)
+		cupaloy.SnapshotT(t, status)
 	})
 
 	t.Run("GetTxReceiptStatus", func(t *testing.T) {

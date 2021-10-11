@@ -1,0 +1,17 @@
+([]etherscan.BlockInfo) (len=3) {
+  (etherscan.BlockInfo) {
+    BlockNumber: (uint64) 3462296,
+    Timestamp: (time.Time) 0001-01-01 00:00:00 +0000 UTC,
+    BlockReward: (*big.Int)(5194770940000000000)
+  },
+  (etherscan.BlockInfo) {
+    BlockNumber: (uint64) 2691400,
+    Timestamp: (time.Time) 0001-01-01 00:00:00 +0000 UTC,
+    BlockReward: (*big.Int)(5086562212310617100)
+  },
+  (etherscan.BlockInfo) {
+    BlockNumber: (uint64) 2687700,
+    Timestamp: (time.Time) 0001-01-01 00:00:00 +0000 UTC,
+    BlockReward: (*big.Int)(5003251945421042780)
+  }
+}

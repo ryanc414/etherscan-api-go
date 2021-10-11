@@ -1,0 +1,16 @@
+([]etherscan.BlockCount) (len=2) {
+  (etherscan.BlockCount) {
+    DailyBlockRewards: (etherscan.DailyBlockRewards) {
+      Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+      BlockRewardsETH: (float64) 14929.46469087059
+    },
+    BlockCount: (uint32) 4848
+  },
+  (etherscan.BlockCount) {
+    DailyBlockRewards: (etherscan.DailyBlockRewards) {
+      Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+      BlockRewardsETH: (float64) 12808.485512162357
+    },
+    BlockCount: (uint32) 4366
+  }
+}

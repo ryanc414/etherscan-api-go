@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/bradleyjkemp/cupaloy"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ryanc414/etherscan-api-go"
 	"github.com/stretchr/testify/assert"
@@ -48,15 +49,7 @@ func TestAccount(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, bals, 3)
 
-		expectedBals := []string{
-			"40891626854930000000000",
-			"332567136222827062478",
-			"0",
-		}
-		for i := range bals {
-			assert.Equal(t, multiETHBalAddrs[i], bals[i].Account)
-			assert.Equal(t, expectedBals[i], bals[i].Balance.String())
-		}
+		cupaloy.SnapshotT(t, bals)
 	})
 
 	t.Run("ListNormalTxs", func(t *testing.T) {
@@ -69,8 +62,7 @@ func TestAccount(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, txs, 2)
 
-		assert.Equal(t, uint64(0), txs[0].BlockNumber)
-		assert.Equal(t, uint64(47884), txs[1].BlockNumber)
+		cupaloy.SnapshotT(t, txs)
 	})
 
 	t.Run("ListInternalTxs", func(t *testing.T) {
@@ -83,17 +75,7 @@ func TestAccount(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, txs, 2)
 
-		assert.Equal(
-			t,
-			common.HexToHash("0x8a1a9989bda84f80143181a68bc137ecefa64d0d4ebde45dd94fc0cf49e70cb6"),
-			txs[0].Hash,
-		)
-
-		assert.Equal(
-			t,
-			common.HexToHash("0x1a50f1dc0bc912745f7d09b988669f71d199719e2fb7592c2074ede9578032d0"),
-			txs[1].Hash,
-		)
+		cupaloy.SnapshotT(t, txs)
 	})
 
 	t.Run("GetInternalTxsByHash", func(t *testing.T) {
@@ -104,7 +86,7 @@ func TestAccount(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, txs, 1)
 
-		assert.Equal(t, uint64(1743059), txs[0].BlockNumber)
+		cupaloy.SnapshotT(t, txs)
 	})
 
 	t.Run("GetInternalTxsBlockRange", func(t *testing.T) {
@@ -116,17 +98,7 @@ func TestAccount(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, txs, 2)
 
-		assert.Equal(
-			t,
-			common.HexToHash("0x3f97c969ddf71f515ce5373b1f8e76e9fd7016611d8ce455881009414301789e"),
-			txs[0].Hash,
-		)
-
-		assert.Equal(
-			t,
-			common.HexToHash("0x893c428fed019404f704cf4d9be977ed9ca01050ed93dccdd6c169422155586f"),
-			txs[1].Hash,
-		)
+		cupaloy.SnapshotT(t, txs)
 	})
 
 	t.Run("ListTokenTransfers", func(t *testing.T) {
@@ -138,17 +110,7 @@ func TestAccount(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, txs, 2)
 
-		assert.Equal(
-			t,
-			common.HexToHash("0xe8c208398bd5ae8e4c237658580db56a2a94dfa0ca382c99b776fa6e7d31d5b4"),
-			txs[0].Hash,
-		)
-
-		assert.Equal(
-			t,
-			common.HexToHash("0x9c82e89b7f6a4405d11c361adb6d808d27bcd9db3b04b3fb3bc05d182bbc5d6f"),
-			txs[1].Hash,
-		)
+		cupaloy.SnapshotT(t, txs)
 	})
 
 	t.Run("ListNFTTransfers", func(t *testing.T) {
@@ -161,10 +123,9 @@ func TestAccount(t *testing.T) {
 			Sort:            etherscan.SortingPreferenceAscending,
 		})
 		require.NoError(t, err)
-
 		require.Len(t, txs, 2)
-		assert.Equal(t, "202106", txs[0].TokenID)
-		assert.Equal(t, "147739", txs[1].TokenID)
+
+		cupaloy.SnapshotT(t, txs)
 	})
 
 	t.Run("ListMinedBlocks", func(t *testing.T) {
@@ -175,8 +136,6 @@ func TestAccount(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, blocks, 3)
 
-		assert.Equal(t, uint64(3462296), blocks[0].BlockNumber)
-		assert.Equal(t, uint64(2691400), blocks[1].BlockNumber)
-		assert.Equal(t, uint64(2687700), blocks[2].BlockNumber)
+		cupaloy.SnapshotT(t, blocks)
 	})
 }
