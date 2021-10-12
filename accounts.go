@@ -2,7 +2,6 @@ package etherscan
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"time"
@@ -49,17 +48,14 @@ func (b BlockParameter) String() string {
 func (c *AccountsClient) GetETHBalance(
 	ctx context.Context, req *ETHBalanceRequest,
 ) (*big.Int, error) {
-	rspData, err := c.api.get(ctx, &requestParams{
-		module: accountModule,
-		action: "balance",
-		other:  marshalRequest(req),
+	result := new(bigInt)
+	err := c.api.call(ctx, &callParams{
+		module:  accountModule,
+		action:  "balance",
+		request: req,
+		result:  result,
 	})
 	if err != nil {
-		return nil, err
-	}
-
-	var result bigInt
-	if err := json.Unmarshal(rspData, &result); err != nil {
 		return nil, err
 	}
 
