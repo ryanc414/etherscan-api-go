@@ -24,17 +24,19 @@ func TestMain(m *testing.M) {
 
 type mockServer struct {
 	apiKey      string
+	checkModule bool
 	module      string
 	testDir     string
 	responseDir string
 	srv         *httptest.Server
 }
 
-func newMockServer(module string) mockServer {
+func newMockServer(module string, checkModule bool) mockServer {
 	m := mockServer{
-		apiKey:  uuid.NewString(),
-		module:  module,
-		testDir: path.Join("testData", module),
+		apiKey:      uuid.NewString(),
+		checkModule: checkModule,
+		module:      module,
+		testDir:     path.Join("testData", module),
 	}
 
 	h := purehttp.NewHandler(m.handleRequest)
@@ -57,12 +59,14 @@ func (m *mockServer) handleRequest(req *http.Request) (*purehttp.Response, error
 
 	q := req.URL.Query()
 
-	module := q.Get("module")
-	if module != m.module {
-		return &purehttp.Response{
-			Body:       []byte(fmt.Sprintf("unknown module %s\n", module)),
-			StatusCode: http.StatusNotFound,
-		}, nil
+	if m.checkModule {
+		module := q.Get("module")
+		if module != m.module {
+			return &purehttp.Response{
+				Body:       []byte(fmt.Sprintf("unknown module %s\n", module)),
+				StatusCode: http.StatusNotFound,
+			}, nil
+		}
 	}
 
 	if q.Get("apikey") != m.apiKey {
@@ -84,7 +88,7 @@ func (m *mockServer) handleAction(q url.Values) (*purehttp.Response, error) {
 		}, nil
 	}
 
-	params := filterQuery(q)
+	params := m.filterQuery(q)
 
 	responsePath := path.Join(m.testDir, fmt.Sprintf("%s.json", action))
 	data, err := ioutil.ReadFile(responsePath)
@@ -112,11 +116,15 @@ func (m *mockServer) handleAction(q url.Values) (*purehttp.Response, error) {
 	}, nil
 }
 
-func filterQuery(q url.Values) url.Values {
+func (m *mockServer) filterQuery(q url.Values) url.Values {
 	params := make(url.Values, len(q))
 
 	for k, v := range q {
-		if k == "apikey" || k == "module" || k == "action" {
+		if k == "apikey" || k == "action" {
+			continue
+		}
+
+		if m.checkModule && k == "module" {
 			continue
 		}
 

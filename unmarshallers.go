@@ -356,6 +356,13 @@ func getTypeUnmarshler(
 			}
 		}
 
+		if info.str {
+			return new(string), func(v interface{}) {
+				val := *v.(*string)
+				field.SetBool(val == "true")
+			}
+		}
+
 		return field.Addr().Interface(), nil
 
 	default:

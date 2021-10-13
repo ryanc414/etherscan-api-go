@@ -14,7 +14,7 @@ import (
 )
 
 func TestContracts(t *testing.T) {
-	m := newMockServer("contract")
+	m := newMockServer("contract", true)
 	t.Cleanup(m.close)
 
 	u, err := url.Parse(m.srv.URL)

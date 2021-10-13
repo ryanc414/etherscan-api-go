@@ -1,0 +1,33 @@
+{
+	"contractaddress=0x0E3A2A1f2146d86A604adc220b4967A898D7Fe07&module=token": {
+		"status": "1",
+		"message": "OK",
+		"result": [
+			{
+				"contractAddress": "0x0e3a2a1f2146d86a604adc220b4967a898d7fe07",
+				"tokenName": "Gods Unchained Cards",
+				"symbol": "CARD",
+				"divisor": "0",
+				"tokenType": "ERC721",
+				"totalSupply": "6962498",
+				"blueCheckmark": "true",
+				"description": "A TCG on the Ethereum blockchain that uses NFT's to bring real ownership to in-game assets.",
+				"website": "https://godsunchained.com/",
+				"email": "",
+				"blog": "https://medium.com/@fuelgames",
+				"reddit": "https://www.reddit.com/r/GodsUnchained/",
+				"slack": "",
+				"facebook": "https://www.facebook.com/godsunchained/",
+				"twitter": "https://twitter.com/godsunchained",
+				"bitcointalk": "",
+				"github": "",
+				"telegram": "",
+				"wechat": "",
+				"linkedin": "",
+				"discord": "https://discordapp.com/invite/DKGr2pW",
+				"whitepaper": "",
+				"tokenPriceUSD": "0.000000000000000000"
+			}
+		]
+	}
+}

@@ -13,7 +13,7 @@ import (
 )
 
 func TestBlocks(t *testing.T) {
-	m := newMockServer("block")
+	m := newMockServer("block", true)
 	t.Cleanup(m.close)
 
 	u, err := url.Parse(m.srv.URL)

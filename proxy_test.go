@@ -15,7 +15,7 @@ import (
 )
 
 func TestProxy(t *testing.T) {
-	m := newMockServer("proxy")
+	m := newMockServer("proxy", true)
 	t.Cleanup(m.close)
 
 	u, err := url.Parse(m.srv.URL)

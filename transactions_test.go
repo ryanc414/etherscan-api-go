@@ -13,7 +13,7 @@ import (
 )
 
 func TestTransactions(t *testing.T) {
-	m := newMockServer("transaction")
+	m := newMockServer("transaction", true)
 	t.Cleanup(m.close)
 
 	u, err := url.Parse(m.srv.URL)

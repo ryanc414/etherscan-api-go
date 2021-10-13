@@ -100,6 +100,7 @@ type tagInfo struct {
 	hex  bool
 	name string
 	num  bool
+	str  bool
 }
 
 func parseTag(fieldType reflect.StructField) tagInfo {
@@ -123,6 +124,9 @@ func parseTag(fieldType reflect.StructField) tagInfo {
 
 		case "num":
 			info.num = true
+
+		case "str":
+			info.str = true
 		}
 	}
 

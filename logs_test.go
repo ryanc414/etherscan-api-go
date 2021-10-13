@@ -12,7 +12,7 @@ import (
 )
 
 func TestLogs(t *testing.T) {
-	m := newMockServer("logs")
+	m := newMockServer("logs", true)
 	t.Cleanup(m.close)
 
 	u, err := url.Parse(m.srv.URL)

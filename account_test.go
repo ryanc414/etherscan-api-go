@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccount(t *testing.T) {
-	m := newMockServer("account")
+	m := newMockServer("account", true)
 	t.Cleanup(m.close)
 
 	u, err := url.Parse(m.srv.URL)
