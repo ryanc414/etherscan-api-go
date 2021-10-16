@@ -262,7 +262,7 @@ func unmarshalField(
 }
 
 func setFieldValue(field reflect.Value, data []byte, info *tagInfo) error {
-	if string(data) == "\"\"" {
+	if string(data) == "\"\"" || string(data) == "null" {
 		return nil
 	}
 
