@@ -1,0 +1,29 @@
+{
+	"enddate=2019-02-28&module=stats&sort=asc&startdate=2019-02-01": {
+		"status": "1",
+		"message": "OK",
+		"result": [
+			{
+				"UTCDate": "2019-02-01",
+				"unixTimeStamp": "1548979200",
+				"maxGasPrice_Wei": "60814303896257",
+				"minGasPrice_Wei": "432495",
+				"avgGasPrice_Wei": "13234562600"
+			},
+			{
+				"UTCDate": "2019-02-27",
+				"unixTimeStamp": "1551225600",
+				"maxGasPrice_Wei": "42000000000000",
+				"minGasPrice_Wei": "1000000",
+				"avgGasPrice_Wei": "16334617513"
+			},
+			{
+				"UTCDate": "2019-02-28",
+				"unixTimeStamp": "1551312000",
+				"maxGasPrice_Wei": "237222222222257",
+				"minGasPrice_Wei": "100000000",
+				"avgGasPrice_Wei": "18834674068"
+			}
+		]
+	}
+}

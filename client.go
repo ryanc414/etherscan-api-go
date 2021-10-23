@@ -13,7 +13,7 @@ type Client struct {
 	Logs         LogsClient
 	Proxy        ProxyClient
 	Tokens       TokensClient
-	GasTracker   GasClient
+	Gas          GasClient
 	Stats        StatsClient
 }
 
@@ -33,7 +33,7 @@ func New(params *Params) *Client {
 		Logs:         LogsClient{api},
 		Proxy:        ProxyClient{api},
 		Tokens:       TokensClient{api},
-		GasTracker:   GasClient{api},
+		Gas:          GasClient{api},
 		Stats:        StatsClient{api},
 	}
 }

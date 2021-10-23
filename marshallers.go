@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -55,8 +56,12 @@ func formatValue(fieldVal reflect.Value, info *tagInfo) string {
 		return hexutil.Encode(v)
 	}
 
-	if v, ok := iVal.(*big.Int); ok && info.hex {
-		return hexutil.EncodeBig(v)
+	if v, ok := iVal.(*big.Int); ok {
+		if info.hex {
+			return hexutil.EncodeBig(v)
+		}
+
+		return v.String()
 	}
 
 	if v, ok := iVal.(time.Time); ok {
@@ -101,7 +106,10 @@ type tagInfo struct {
 	name string
 	num  bool
 	str  bool
+	sep  bool
 }
+
+var sepRegex = regexp.MustCompile(`^sep=(.+)$`)
 
 func parseTag(fieldType reflect.StructField) tagInfo {
 	rawTag := fieldType.Tag.Get("etherscan")
@@ -127,6 +135,9 @@ func parseTag(fieldType reflect.StructField) tagInfo {
 
 		case "str":
 			info.str = true
+
+		case "sep":
+			info.sep = true
 		}
 	}
 

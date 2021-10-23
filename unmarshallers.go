@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"reflect"
 	"strconv"
@@ -169,17 +170,21 @@ func unmarshalResponse(data []byte, v interface{}) error {
 			return errors.New("only slices of structs are allowed")
 		}
 
-		return unmarshalSliceRsp(data, rspVal)
+		return unmarshalSliceRsp(data, rspVal, nil)
 
 	default:
 		return json.Unmarshal(data, v)
 	}
 }
 
-func unmarshalSliceRsp(data []byte, v reflect.Value) error {
+func unmarshalSliceRsp(data []byte, v reflect.Value, info *tagInfo) error {
 	var u json.Unmarshaler
 	if reflect.PtrTo(v.Type().Elem()).Implements(reflect.TypeOf(&u).Elem()) {
 		return json.Unmarshal(data, v.Addr().Interface())
+	}
+
+	if info != nil && info.sep {
+		return unmarshalStringSepSlice(data, v, ",")
 	}
 
 	var rawSlice []json.RawMessage
@@ -193,6 +198,29 @@ func unmarshalSliceRsp(data []byte, v reflect.Value) error {
 		el := slice.Index(i)
 
 		if err := unmarshalStructRsp(rawSlice[i], el); err != nil {
+			return err
+		}
+	}
+
+	v.Set(slice)
+
+	return nil
+}
+
+func unmarshalStringSepSlice(data []byte, v reflect.Value, sep string) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
+		return errors.Wrap(err, "while unmarshalling as string")
+	}
+
+	substrs := strings.Split(str, sep)
+	slice := reflect.MakeSlice(v.Type(), len(substrs), len(substrs))
+
+	for i := range substrs {
+		el := slice.Index(i)
+
+		val := fmt.Sprintf("\"%s\"", substrs[i])
+		if err := setFieldValue(el, []byte(val), nil); err != nil {
 			return err
 		}
 	}
@@ -267,7 +295,7 @@ func setFieldValue(field reflect.Value, data []byte, info *tagInfo) error {
 	}
 
 	if _, ok := field.Interface().([]byte); !ok && field.Kind() == reflect.Slice {
-		return unmarshalSliceRsp(data, field)
+		return unmarshalSliceRsp(data, field, info)
 	}
 
 	into, setter := getTypeUnmarshler(field, data, info)

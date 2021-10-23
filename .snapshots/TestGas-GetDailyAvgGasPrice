@@ -1,0 +1,20 @@
+([]etherscan.AvgGasPrice) (len=3) {
+  (etherscan.AvgGasPrice) {
+    Timestamp: (time.Time) 0001-01-01 00:00:00 +0000 UTC,
+    MaxGasPrice: (*big.Int)(60814303896257),
+    MinGasPrice: (*big.Int)(432495),
+    AvgGasPrice: (*big.Int)(13234562600)
+  },
+  (etherscan.AvgGasPrice) {
+    Timestamp: (time.Time) 0001-01-01 00:00:00 +0000 UTC,
+    MaxGasPrice: (*big.Int)(42000000000000),
+    MinGasPrice: (*big.Int)(1000000),
+    AvgGasPrice: (*big.Int)(16334617513)
+  },
+  (etherscan.AvgGasPrice) {
+    Timestamp: (time.Time) 0001-01-01 00:00:00 +0000 UTC,
+    MaxGasPrice: (*big.Int)(237222222222257),
+    MinGasPrice: (*big.Int)(100000000),
+    AvgGasPrice: (*big.Int)(18834674068)
+  }
+}
