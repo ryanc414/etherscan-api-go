@@ -61,7 +61,7 @@ func (c *GasClient) GetGasOracle(ctx context.Context) (*GasPrices, error) {
 }
 
 type AvgGasLimit struct {
-	Timestamp time.Time `etherscan:"unixTimestamp"`
+	Timestamp time.Time `etherscan:"unixTimeStamp"`
 	GasLimit  uint64    `etherscan:"gasLimit"`
 }
 
@@ -82,7 +82,7 @@ func (c *GasClient) GetDailyAvgGasLimit(
 }
 
 type GasUsed struct {
-	Timestamp time.Time `etherscan:"unixTimestamp"`
+	Timestamp time.Time `etherscan:"unixTimeStamp"`
 	GasUsed   *big.Int  `etherscan:"gasUsed"`
 }
 
@@ -103,7 +103,7 @@ func (c *GasClient) GetDailyTotalGasUsed(
 }
 
 type AvgGasPrice struct {
-	Timestamp   time.Time `etherscan:"unixTimestamp"`
+	Timestamp   time.Time `etherscan:"unixTimeStamp"`
 	MaxGasPrice *big.Int  `etherscan:"maxGasPrice_Wei"`
 	MinGasPrice *big.Int  `etherscan:"minGasPrice_Wei"`
 	AvgGasPrice *big.Int  `etherscan:"avgGasPrice_Wei"`

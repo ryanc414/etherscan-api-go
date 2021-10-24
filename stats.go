@@ -290,7 +290,7 @@ func (c *StatsClient) GetETHHistoricalDailyMarketCap(
 }
 
 type HistoricalETHPrice struct {
-	Timestamp time.Time       `etherscan:"unixTimestamp"`
+	Timestamp time.Time       `etherscan:"unixTimeStamp"`
 	USDValue  decimal.Decimal `etherscan:"value"`
 }
 

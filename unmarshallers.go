@@ -296,7 +296,7 @@ func unmarshalStructRsp(data []byte, v reflect.Value) error {
 
 		fieldData := rspMap[name]
 		if len(fieldData) == 0 {
-			log.Debug().Msgf("no field with name %s in response data", name)
+			log.Warn().Msgf("no field with name %s in response data", name)
 			continue
 		}
 
