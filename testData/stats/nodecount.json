@@ -1,0 +1,10 @@
+{
+	"": {
+		"status": "1",
+		"message": "OK",
+		"result": {
+			"UTCDate": "2021-06-29",
+			"TotalNodeCount": "6413"
+		}
+	}
+}

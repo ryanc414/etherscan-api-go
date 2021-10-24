@@ -1,0 +1,18 @@
+{
+	"enddate=2019-02-28&sort=asc&startdate=2019-02-01": {
+		"status": "1",
+		"message": "OK",
+		"result": [
+			{
+				"UTCDate": "2019-02-01",
+				"unixTimeStamp": "1548979200",
+				"transactionFee_Eth": "358.558440870590355682"
+			},
+			{
+				"UTCDate": "2019-02-28",
+				"unixTimeStamp": "1551312000",
+				"transactionFee_Eth": "545.141762162356907132"
+			}
+		]
+	}
+}

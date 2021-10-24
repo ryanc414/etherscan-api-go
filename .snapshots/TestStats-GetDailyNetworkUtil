@@ -1,0 +1,10 @@
+([]etherscan.NetworkUtil) (len=2) {
+  (etherscan.NetworkUtil) {
+    NetworkUtil: (decimal.Decimal) 0.8464,
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT
+  },
+  (etherscan.NetworkUtil) {
+    NetworkUtil: (decimal.Decimal) 0.9472,
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT
+  }
+}

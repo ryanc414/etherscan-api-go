@@ -7,10 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-const (
-	statsModule = "stats"
-	tokenModule = "token"
-)
+const tokenModule = "token"
 
 type TokensClient struct {
 	api *apiClient

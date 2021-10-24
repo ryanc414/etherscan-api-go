@@ -1,0 +1,22 @@
+{
+	"enddate=2019-02-28&sort=asc&startdate=2019-02-01": {
+		"status": "1",
+		"message": "OK",
+		"result": [
+			{
+				"UTCDate": "2019-02-01",
+				"unixTimeStamp": "1548979200",
+				"supply": "104672819.281250",
+				"marketCap": "11203.1318476721875",
+				"price": "107.03"
+			},
+			{
+				"UTCDate": "2019-02-28",
+				"unixTimeStamp": "1551312000",
+				"supply": "105048576.406250",
+				"marketCap": "14317.0704784078125",
+				"price": "136.29"
+			}
+		]
+	}
+}

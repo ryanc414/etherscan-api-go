@@ -1,0 +1,18 @@
+{
+	"enddate=2019-02-28&sort=asc&startdate=2019-02-01": {
+		"status": "1",
+		"message": "OK",
+		"result": [
+			{
+				"UTCDate": "2019-02-01",
+				"unixTimeStamp": "1548979200",
+				"networkHashRate": "143116.0140"
+			},
+			{
+				"UTCDate": "2019-02-28",
+				"unixTimeStamp": "1551312000",
+				"networkHashRate": "157689.3983"
+			}
+		]
+	}
+}

@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"github.com/shopspring/decimal"
 )
 
 type bigInt big.Int
@@ -36,6 +37,29 @@ func (b *bigInt) UnmarshalJSON(data []byte) error {
 
 func (b *bigInt) unwrap() *big.Int {
 	return (*big.Int)(b)
+}
+
+type commaDecimal decimal.Decimal
+
+func (d *commaDecimal) UnmarshalJSON(data []byte) error {
+	var decStr string
+	if err := json.Unmarshal(data, &decStr); err != nil {
+		return err
+	}
+
+	decStr = strings.Replace(decStr, ",", "", -1)
+
+	dec, err := decimal.NewFromString(decStr)
+	if err != nil {
+		return err
+	}
+
+	*d = commaDecimal(dec)
+	return nil
+}
+
+func (d commaDecimal) unwrap() decimal.Decimal {
+	return decimal.Decimal(d)
 }
 
 type uintStr uint64
@@ -121,6 +145,27 @@ func (t *hexTimestamp) UnmarshalJSON(data []byte) error {
 }
 
 func (t hexTimestamp) unwrap() time.Time {
+	return time.Time(t)
+}
+
+type dateTimestamp time.Time
+
+func (t *dateTimestamp) UnmarshalJSON(data []byte) error {
+	var dateStr string
+	if err := json.Unmarshal(data, &dateStr); err != nil {
+		return err
+	}
+
+	date, err := time.Parse(dateFormat, dateStr)
+	if err != nil {
+		return err
+	}
+
+	*t = dateTimestamp(date)
+	return nil
+}
+
+func (t dateTimestamp) unwrap() time.Time {
 	return time.Time(t)
 }
 
@@ -321,8 +366,20 @@ func getTypeUnmarshler(
 			}
 		}
 
+		if info.num {
+			return new(big.Int), func(v interface{}) {
+				setDirect(v.(*big.Int), field)
+			}
+		}
+
 		return new(bigInt), func(v interface{}) {
 			setDirect(v.(*bigInt).unwrap(), field)
+		}
+	}
+
+	if _, ok := iField.(decimal.Decimal); ok && info.comma {
+		return new(commaDecimal), func(v interface{}) {
+			setDirect(v.(*commaDecimal).unwrap(), field)
 		}
 	}
 
@@ -330,6 +387,12 @@ func getTypeUnmarshler(
 		if info.hex {
 			return new(hexTimestamp), func(v interface{}) {
 				setDirect(v.(*hexTimestamp).unwrap(), field)
+			}
+		}
+
+		if info.date {
+			return new(dateTimestamp), func(v interface{}) {
+				setDirect(v.(*dateTimestamp).unwrap(), field)
 			}
 		}
 

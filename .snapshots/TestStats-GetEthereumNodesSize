@@ -1,0 +1,16 @@
+([]etherscan.ETHNodeSize) (len=2) {
+  (etherscan.ETHNodeSize) {
+    BlockNumber: (uint64) 7156164,
+    ChainTimestamp: (time.Time) 2019-02-01 00:00:00 +0000 UTC,
+    ChainSize: (*big.Int)(184726421279),
+    ClientType: (etherscan.ETHClientType) geth,
+    SyncMode: (etherscan.NodeSyncMode) default
+  },
+  (etherscan.ETHNodeSize) {
+    BlockNumber: (uint64) 7276521,
+    ChainTimestamp: (time.Time) 2019-02-28 00:00:00 +0000 UTC,
+    ChainSize: (*big.Int)(197073145113),
+    ClientType: (etherscan.ETHClientType) geth,
+    SyncMode: (etherscan.NodeSyncMode) default
+  }
+}

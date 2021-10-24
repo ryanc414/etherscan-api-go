@@ -1,0 +1,22 @@
+{
+	"clienttype=geth&enddate=2019-02-28&sort=asc&startdate=2019-02-01&syncmode=default": {
+		"status": "1",
+		"message": "OK",
+		"result": [
+			{
+				"blockNumber": "7156164",
+				"chainTimeStamp": "2019-02-01",
+				"chainSize": "184726421279",
+				"clientType": "Geth",
+				"syncMode": "Default"
+			},
+			{
+				"blockNumber": "7276521",
+				"chainTimeStamp": "2019-02-28",
+				"chainSize": "197073145113",
+				"clientType": "Geth",
+				"syncMode": "Default"
+			}
+		]
+	}
+}

@@ -101,12 +101,13 @@ func formatValue(fieldVal reflect.Value, info *tagInfo) string {
 }
 
 type tagInfo struct {
-	date bool
-	hex  bool
-	name string
-	num  bool
-	str  bool
-	sep  bool
+	date  bool
+	hex   bool
+	name  string
+	num   bool
+	str   bool
+	sep   bool
+	comma bool
 }
 
 var sepRegex = regexp.MustCompile(`^sep=(.+)$`)
@@ -138,6 +139,9 @@ func parseTag(fieldType reflect.StructField) tagInfo {
 
 		case "sep":
 			info.sep = true
+
+		case "comma":
+			info.comma = true
 		}
 	}
 
