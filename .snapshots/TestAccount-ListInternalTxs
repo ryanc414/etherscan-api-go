@@ -3,7 +3,6 @@
     TransactionInfo: (etherscan.TransactionInfo) {
       BlockNumber: (uint64) 2535368,
       Timestamp: (time.Time) 2016-10-30 14:28:10 +0000 GMT,
-      Hash: (common.Hash) (len=32) 0x8a1a9989bda84f80143181a68bc137ecefa64d0d4ebde45dd94fc0cf49e70cb6,
       From: (common.Address) (len=20) 0x20d42F2e99A421147AcF198D775395cAc2E8b03d,
       To: (common.Address) (len=20) 0x0000000000000000000000000000000000000000,
       Value: (*big.Int)(0),
@@ -13,6 +12,7 @@
       GasUsed: (uint64) 46750,
       IsError: (bool) false
     },
+    Hash: (common.Hash) (len=32) 0x8a1a9989bda84f80143181a68bc137ecefa64d0d4ebde45dd94fc0cf49e70cb6,
     TraceID: (string) (len=1) "0",
     Type: (string) (len=6) "create"
   },
@@ -20,7 +20,6 @@
     TransactionInfo: (etherscan.TransactionInfo) {
       BlockNumber: (uint64) 2535479,
       Timestamp: (time.Time) 2016-10-30 14:52:14 +0000 GMT,
-      Hash: (common.Hash) (len=32) 0x1a50f1dc0bc912745f7d09b988669f71d199719e2fb7592c2074ede9578032d0,
       From: (common.Address) (len=20) 0x2C1ba59D6F58433FB1EaEe7d20b26Ed83bDA51A3,
       To: (common.Address) (len=20) 0x20d42F2e99A421147AcF198D775395cAc2E8b03d,
       Value: (*big.Int)(100000000000000000),
@@ -30,6 +29,7 @@
       GasUsed: (uint64) 0,
       IsError: (bool) false
     },
+    Hash: (common.Hash) (len=32) 0x1a50f1dc0bc912745f7d09b988669f71d199719e2fb7592c2074ede9578032d0,
     TraceID: (string) (len=1) "0",
     Type: (string) (len=4) "call"
   }

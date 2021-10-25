@@ -27,7 +27,7 @@ type BlockRewards struct {
 type UncleReward struct {
 	Miner         common.Address
 	UnclePosition uint32   `etherscan:"unclePosition"`
-	BlockReward   *big.Int `etherscan:"blockReward"`
+	BlockReward   *big.Int `etherscan:"blockreward"`
 }
 
 func (c *BlocksClient) GetBlockRewards(

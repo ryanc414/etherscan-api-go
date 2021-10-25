@@ -7,12 +7,12 @@
     (etherscan.UncleReward) {
       Miner: (common.Address) (len=20) 0xbCDFC35b86BedF72F0Cda046A3c16829A2Ef41d1,
       UnclePosition: (uint32) 0,
-      BlockReward: (*big.Int)(<nil>)
+      BlockReward: (*big.Int)(3750000000000000000)
     },
     (etherscan.UncleReward) {
       Miner: (common.Address) (len=20) 0x0d0C9855c722ff0c78F21E43aA275a5B8eA60DcE,
       UnclePosition: (uint32) 1,
-      BlockReward: (*big.Int)(<nil>)
+      BlockReward: (*big.Int)(3750000000000000000)
     }
   },
   UncleInclusionReward: (*big.Int)(312500000000000000)

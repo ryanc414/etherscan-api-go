@@ -30,7 +30,6 @@ func (c *ProxyClient) BlockNumber(ctx context.Context) (uint64, error) {
 }
 
 type ProxyBaseBlockInfo struct {
-	BaseFeePerGas    *big.Int `etherscan:"baseFeePerGas,hex"`
 	Difficulty       *big.Int `etherscan:"difficulty,hex"`
 	ExtraData        []byte   `etherscan:"extraData,hex"`
 	GasLimit         *big.Int `etherscan:"gasLimit,hex"`
@@ -38,7 +37,7 @@ type ProxyBaseBlockInfo struct {
 	Hash             common.Hash
 	LogsBloom        []byte `etherscan:"logsBloom,hex"`
 	Miner            common.Address
-	MixHash          common.Hash
+	MixHash          common.Hash `etherscan:"mixHash"`
 	Nonce            *big.Int    `etherscan:"nonce,hex"`
 	Number           uint64      `etherscan:"number,hex"`
 	ParentHash       common.Hash `etherscan:"parentHash"`
@@ -47,14 +46,14 @@ type ProxyBaseBlockInfo struct {
 	Size             uint64      `etherscan:"size,hex"`
 	StateRoot        common.Hash `etherscan:"stateRoot"`
 	Timestamp        time.Time   `etherscan:"timestamp,hex"`
-	TotalDifficulty  *big.Int    `etherscan:"totalDifficulty,hex"`
 	TransactionsRoot common.Hash `etherscan:"transactionsRoot"`
 	Uncles           []common.Hash
 }
 
 type ProxyFullBlockInfo struct {
 	ProxyBaseBlockInfo
-	Transactions []ProxyTransactionInfo
+	TotalDifficulty *big.Int `etherscan:"totalDifficulty,hex"`
+	Transactions    []ProxyTransactionInfo
 }
 
 type getBlockByNumRequest struct {
@@ -80,7 +79,8 @@ func (c *ProxyClient) GetBlockByNumberFull(
 
 type ProxySummaryBlockInfo struct {
 	ProxyBaseBlockInfo
-	Transactions []common.Hash
+	TotalDifficulty *big.Int `etherscan:"totalDifficulty,hex"`
+	Transactions    []common.Hash
 }
 
 func (c *ProxyClient) GetBlockByNumberSummary(
@@ -104,10 +104,15 @@ type BlockNumberAndIndex struct {
 	Index  uint32 `etherscan:"index,hex"`
 }
 
+type ProxyUncleBlockInfo struct {
+	ProxyBaseBlockInfo
+	BaseFeePerGas *big.Int `etherscan:"baseFeePerGas,hex"`
+}
+
 func (c *ProxyClient) GetUncleByBlockNumberAndIndex(
 	ctx context.Context, req *BlockNumberAndIndex,
-) (*ProxyBaseBlockInfo, error) {
-	result := new(ProxyBaseBlockInfo)
+) (*ProxyUncleBlockInfo, error) {
+	result := new(ProxyUncleBlockInfo)
 
 	err := c.api.call(ctx, &callParams{
 		module:  proxyModule,

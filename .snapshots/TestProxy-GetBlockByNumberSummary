@@ -1,6 +1,5 @@
 (*etherscan.ProxySummaryBlockInfo)({
   ProxyBaseBlockInfo: (etherscan.ProxyBaseBlockInfo) {
-    BaseFeePerGas: (*big.Int)(<nil>),
     Difficulty: (*big.Int)(2032980573460),
     ExtraData: ([]uint8) {
     },
@@ -26,7 +25,7 @@
       000000f0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
     },
     Miner: (common.Address) (len=20) 0xf927a40C8B7F6E07c5af7FA2155B4864a4112B13,
-    MixHash: (common.Hash) (len=32) 0x0000000000000000000000000000000000000000000000000000000000000000,
+    MixHash: (common.Hash) (len=32) 0x13dd2c8aec729f75aebcd79a916ecb0f7edc6493efcc6a4da8d7b0ab3ee88444,
     Nonce: (*big.Int)(14270350509019352610),
     Number: (uint64) 68943,
     ParentHash: (common.Hash) (len=32) 0xf8d01370e6e274f8188954fbee435b40c35b2ad3d4ab671f6d086cd559e48f04,
@@ -35,11 +34,11 @@
     Size: (uint64) 629,
     StateRoot: (common.Hash) (len=32) 0xd64a0f63e2c7f541e6e6f8548a10a5c4e49fda7ac1aa80f9dddef648c7b9e25f,
     Timestamp: (time.Time) 1970-01-01 01:00:00 +0100 BST,
-    TotalDifficulty: (*big.Int)(81299467757793648),
     TransactionsRoot: (common.Hash) (len=32) 0x4a5b78c13d11559c9541576834b5172fe8b18507c0f9f76454fcdddedd8dff7a,
     Uncles: ([]common.Hash) {
     }
   },
+  TotalDifficulty: (*big.Int)(81299467757793648),
   Transactions: ([]common.Hash) (len=1) {
     (common.Hash) (len=32) 0xa442249820de6be754da81eafbd44a865773e4b23d7c0522d31fd03977823008
   }

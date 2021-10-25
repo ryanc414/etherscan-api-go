@@ -114,7 +114,6 @@ func (s SortingPreference) String() string {
 type TransactionInfo struct {
 	BlockNumber     uint64    `etherscan:"blockNumber"`
 	Timestamp       time.Time `etherscan:"timeStamp"`
-	Hash            common.Hash
 	From            common.Address
 	To              common.Address
 	Value           *big.Int
@@ -127,6 +126,7 @@ type TransactionInfo struct {
 
 type NormalTxInfo struct {
 	TransactionInfo
+	Hash              common.Hash
 	Nonce             uint64
 	BlockHash         common.Hash `etherscan:"blockHash"`
 	TransactionIndex  uint64      `etherscan:"transactionIndex"`
@@ -138,8 +138,14 @@ type NormalTxInfo struct {
 
 type InternalTxInfo struct {
 	TransactionInfo
+	Hash    common.Hash
 	TraceID string `etherscan:"traceId"`
 	Type    string
+}
+
+type InternalTxInfoByHash struct {
+	TransactionInfo
+	Type string
 }
 
 func (c *AccountsClient) ListNormalTransactions(
@@ -170,7 +176,7 @@ func (c *AccountsClient) ListInternalTransactions(
 
 func (c *AccountsClient) GetInternalTxsByHash(
 	ctx context.Context, hash common.Hash,
-) (result []InternalTxInfo, err error) {
+) (result []InternalTxInfoByHash, err error) {
 	req := struct{ TxHash common.Hash }{hash}
 	err = c.api.call(ctx, &callParams{
 		module:  accountModule,
@@ -208,11 +214,29 @@ type TokenTransfersRequest struct {
 	Sort            SortingPreference
 }
 
+type BaseTokenTransferInfo struct {
+	BlockNumber       uint64    `etherscan:"blockNumber"`
+	Timestamp         time.Time `etherscan:"timeStamp"`
+	Hash              common.Hash
+	Nonce             uint64
+	BlockHash         common.Hash `etherscan:"blockHash"`
+	From              common.Address
+	ContractAddress   common.Address `etherscan:"contractAddress"`
+	To                common.Address
+	TokenName         string `etherscan:"tokenName"`
+	TokenSymbol       string `etherscan:"tokenSymbol"`
+	TokenDecimal      uint32 `etherscan:"tokenDecimal"`
+	TransactionIndex  uint32 `etherscan:"transactionIndex"`
+	Gas               uint64
+	GasPrice          *big.Int `etherscan:"gasPrice"`
+	GasUsed           uint64   `etherscan:"gasUsed"`
+	CumulativeGasUsed uint64   `etherscan:"cumulativeGasUsed"`
+	Confirmations     uint64
+}
+
 type TokenTransferInfo struct {
-	NormalTxInfo
-	TokenName    string `json:"tokenName"`
-	TokenSymbol  string `json:"tokenSymbol"`
-	TokenDecimal uint32 `json:"tokenDecimal"`
+	BaseTokenTransferInfo
+	Value *big.Int
 }
 
 func (c *AccountsClient) ListTokenTransfers(
@@ -235,7 +259,7 @@ type ListNFTTransferRequest struct {
 }
 
 type NFTTransferInfo struct {
-	TokenTransferInfo
+	BaseTokenTransferInfo
 	TokenID string `etherscan:"tokenID"`
 }
 
@@ -282,9 +306,9 @@ func (b BlockType) String() string {
 }
 
 type BlockInfo struct {
-	BlockNumber uint64 `etherscan:"blockNumber"`
-	Timestamp   time.Time
-	BlockReward *big.Int `etherscan:"blockReward"`
+	BlockNumber uint64    `etherscan:"blockNumber"`
+	Timestamp   time.Time `etherscan:"timeStamp"`
+	BlockReward *big.Int  `etherscan:"blockReward"`
 }
 
 func (c *AccountsClient) ListBlocksMined(
