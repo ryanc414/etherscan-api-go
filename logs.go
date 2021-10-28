@@ -1,3 +1,4 @@
+//go:generate go-enum -f=$GOFILE
 package etherscan
 
 import (
@@ -112,25 +113,9 @@ func (c *TopicComparison) toParam() (string, string, error) {
 	return key, val, nil
 }
 
+// ComparisonOperator is an enumeration of topic comparison operators.
+// ENUM(and,or)
 type ComparisonOperator int32
-
-const (
-	ComparisonOperatorAnd = iota
-	ComparisonOperatorOr
-)
-
-func (op ComparisonOperator) String() string {
-	switch op {
-	case ComparisonOperatorAnd:
-		return "and"
-
-	case ComparisonOperatorOr:
-		return "or"
-
-	default:
-		panic(fmt.Sprintf("unexpected comparison operator %d", int32(op)))
-	}
-}
 
 type LogResponse struct {
 	Address          common.Address

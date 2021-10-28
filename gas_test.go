@@ -41,7 +41,7 @@ func TestGas(t *testing.T) {
 	dateRange := etherscan.DateRange{
 		StartDate: time.Date(2019, 2, 1, 0, 0, 0, 0, time.UTC),
 		EndDate:   time.Date(2019, 2, 28, 0, 0, 0, 0, time.UTC),
-		Sort:      etherscan.SortingPreferenceAscending,
+		Sort:      etherscan.SortingPreferenceAsc,
 	}
 
 	t.Run("GetDailyAvgGasLimit", func(t *testing.T) {

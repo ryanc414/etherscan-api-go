@@ -57,7 +57,7 @@ func TestAccount(t *testing.T) {
 			Address:    common.HexToAddress("0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a"),
 			StartBlock: 0,
 			EndBlock:   99999999,
-			Sort:       etherscan.SortingPreferenceAscending,
+			Sort:       etherscan.SortingPreferenceAsc,
 		})
 		require.NoError(t, err)
 		require.Len(t, txs, 2)
@@ -70,7 +70,7 @@ func TestAccount(t *testing.T) {
 			Address:    common.HexToAddress("0x2c1ba59d6f58433fb1eaee7d20b26ed83bda51a3"),
 			StartBlock: 0,
 			EndBlock:   99999999,
-			Sort:       etherscan.SortingPreferenceAscending,
+			Sort:       etherscan.SortingPreferenceAsc,
 		})
 		require.NoError(t, err)
 		require.Len(t, txs, 2)
@@ -93,7 +93,7 @@ func TestAccount(t *testing.T) {
 		txs, err := client.Accounts.GetInternalTxsByBlockRange(ctx, &etherscan.BlockRangeRequest{
 			StartBlock: 0,
 			EndBlock:   2702578,
-			Sort:       etherscan.SortingPreferenceAscending,
+			Sort:       etherscan.SortingPreferenceAsc,
 		})
 		require.NoError(t, err)
 		require.Len(t, txs, 2)
@@ -105,7 +105,7 @@ func TestAccount(t *testing.T) {
 		txs, err := client.Accounts.ListTokenTransfers(ctx, &etherscan.TokenTransfersRequest{
 			Address:         common.HexToAddress("0x4e83362442b8d1bec281594cea3050c8eb01311c"),
 			ContractAddress: common.HexToAddress("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2"),
-			Sort:            etherscan.SortingPreferenceAscending,
+			Sort:            etherscan.SortingPreferenceAsc,
 		})
 		require.NoError(t, err)
 		require.Len(t, txs, 2)
@@ -120,7 +120,7 @@ func TestAccount(t *testing.T) {
 		txs, err := client.Accounts.ListNFTTransfers(ctx, &etherscan.ListNFTTransferRequest{
 			Address:         &address,
 			ContractAddress: &contractAddress,
-			Sort:            etherscan.SortingPreferenceAscending,
+			Sort:            etherscan.SortingPreferenceAsc,
 		})
 		require.NoError(t, err)
 		require.Len(t, txs, 2)

@@ -1,8 +1,8 @@
+//go:generate go-enum -f=$GOFILE
 package etherscan
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -74,25 +74,10 @@ type BlockNumberRequest struct {
 	Closest   ClosestAvailableBlock
 }
 
+// ClosestAvailableBlock is an enumaration of the closest available block
+// parameters.
+// ENUM(before,after)
 type ClosestAvailableBlock int32
-
-const (
-	ClosestAvailableBlockBefore = iota
-	ClosestAvailableBlockAfter
-)
-
-func (c ClosestAvailableBlock) String() string {
-	switch c {
-	case ClosestAvailableBlockBefore:
-		return "before"
-
-	case ClosestAvailableBlockAfter:
-		return "after"
-
-	default:
-		panic(fmt.Sprintf("unknown closest available block parameter %d", int32(c)))
-	}
-}
 
 func (c *BlocksClient) GetBlockNumber(
 	ctx context.Context, req *BlockNumberRequest,

@@ -1,8 +1,8 @@
+//go:generate go-enum -f=$GOFILE
 package etherscan
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -21,29 +21,9 @@ type ETHBalanceRequest struct {
 	Tag     BlockParameter
 }
 
+// BlockParameter is an enumeration of allowed block parameters
+// ENUM(latest,earliest,pending)
 type BlockParameter int32
-
-const (
-	BlockParameterLatest = iota
-	BlockParameterEarliest
-	BlockParameterPending
-)
-
-func (b BlockParameter) String() string {
-	switch b {
-	case BlockParameterEarliest:
-		return "earliest"
-
-	case BlockParameterPending:
-		return "pending"
-
-	case BlockParameterLatest:
-		return "latest"
-
-	default:
-		panic(fmt.Sprintf("unknown block parameter %d", int32(b)))
-	}
-}
 
 func (c *AccountsClient) GetETHBalance(
 	ctx context.Context, req *ETHBalanceRequest,
@@ -91,25 +71,9 @@ type ListTxRequest struct {
 	Sort       SortingPreference
 }
 
+// SortingPreference is an enumeration of sorting preferences.
+// ENUM(asc,desc)
 type SortingPreference int32
-
-const (
-	SortingPreferenceAscending = iota
-	SortingPreferenceDescending
-)
-
-func (s SortingPreference) String() string {
-	switch s {
-	case SortingPreferenceAscending:
-		return "asc"
-
-	case SortingPreferenceDescending:
-		return "desc"
-
-	default:
-		panic(fmt.Sprintf("unknown sorting preference %d", int32(s)))
-	}
-}
 
 type TransactionInfo struct {
 	BlockNumber     uint64    `etherscan:"blockNumber"`
@@ -285,25 +249,9 @@ type ListBlocksRequest struct {
 	Type    BlockType `etherscan:"blocktype"`
 }
 
+// BlockType is an enumeration of block types.
+// ENUM(blocks,uncles)
 type BlockType int32
-
-const (
-	BlockTypeBlocks = iota
-	BlockTypeUncles
-)
-
-func (b BlockType) String() string {
-	switch b {
-	case BlockTypeBlocks:
-		return "blocks"
-
-	case BlockTypeUncles:
-		return "uncles"
-
-	default:
-		panic(fmt.Sprintf("unknown block type %d", int32(b)))
-	}
-}
 
 type BlockInfo struct {
 	BlockNumber uint64    `etherscan:"blockNumber"`

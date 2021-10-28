@@ -1,3 +1,4 @@
+//go:generate go-enum -f=$GOFILE --marshal
 package etherscan
 
 import (
@@ -5,7 +6,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 )
 
@@ -53,87 +53,33 @@ func (c *StatsClient) GetLastETHPrice(ctx context.Context) (*ETHPrice, error) {
 type NodesSizeReq struct {
 	StartDate  time.Time `etherscan:"startdate,date"`
 	EndDate    time.Time `etherscan:"enddate,date"`
-	ClientType ETHClientType
-	SyncMode   NodeSyncMode
+	ClientType ETHClientTypeReq
+	SyncMode   NodeSyncModeReq
 	Sort       SortingPreference
 }
 
-type ETHClientType int32
+// ETHClientTypeReq is an enumeration of ethereum client types.
+// ENUM(geth,parity)
+type ETHClientTypeReq int32
 
-const (
-	ETHClientTypeGeth ETHClientType = iota
-	ETHClientTypeParity
-)
+// ETHClientTypeResult is an enumeration of ethereum client types.
+// ENUM(Geth,Parity)
+type ETHClientTypeResult int32
 
-func (t *ETHClientType) UnmarshalJSON(data []byte) error {
-	switch s := string(data); s {
-	case "\"Geth\"":
-		*t = ETHClientTypeGeth
-		return nil
+// NodeSyncModeReq is an enumeration of ethereum node sync modes.
+// ENUM(default,archive)
+type NodeSyncModeReq int32
 
-	case "\"Parity\"":
-		*t = ETHClientTypeParity
-		return nil
-
-	default:
-		return errors.Errorf("unknown ETH client type %s", s)
-	}
-}
-
-func (t ETHClientType) String() string {
-	switch t {
-	case ETHClientTypeGeth:
-		return "geth"
-
-	case ETHClientTypeParity:
-		return "parity"
-
-	default:
-		panic("unknown ETH client type")
-	}
-}
-
-type NodeSyncMode int32
-
-const (
-	NodeSyncModeDefault NodeSyncMode = iota
-	NodeSyncModeArchive
-)
-
-func (m *NodeSyncMode) UnmarshalJSON(data []byte) error {
-	switch s := string(data); s {
-	case "\"Default\"":
-		*m = NodeSyncModeDefault
-		return nil
-
-	case "\"Archive\"":
-		*m = NodeSyncModeArchive
-		return nil
-
-	default:
-		return errors.Errorf("unknown node sync mode %s", s)
-	}
-}
-
-func (m NodeSyncMode) String() string {
-	switch m {
-	case NodeSyncModeDefault:
-		return "default"
-
-	case NodeSyncModeArchive:
-		return "archive"
-
-	default:
-		panic("unknown node sync mode")
-	}
-}
+// NodeSyncModeResult is an enumeration of ethereum node sync modes.
+// ENUM(Default,Archive)
+type NodeSyncModeResult int32
 
 type ETHNodeSize struct {
-	BlockNumber    uint64        `etherscan:"blockNumber"`
-	ChainTimestamp time.Time     `etherscan:"chainTimeStamp,date"`
-	ChainSize      *big.Int      `etherscan:"chainSize"`
-	ClientType     ETHClientType `etherscan:"clientType"`
-	SyncMode       NodeSyncMode  `etherscan:"syncMode"`
+	BlockNumber    uint64              `etherscan:"blockNumber"`
+	ChainTimestamp time.Time           `etherscan:"chainTimeStamp,date"`
+	ChainSize      *big.Int            `etherscan:"chainSize"`
+	ClientType     ETHClientTypeResult `etherscan:"clientType"`
+	SyncMode       NodeSyncModeResult  `etherscan:"syncMode"`
 }
 
 func (c *StatsClient) GetEthereumNodesSize(
