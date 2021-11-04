@@ -1,3 +1,4 @@
+// etherscan is a client library for the etherscan.io API.
 package etherscan
 
 import (
@@ -5,6 +6,7 @@ import (
 	"net/url"
 )
 
+// Client is the main etherscan client.
 type Client struct {
 	Accounts     AccountsClient
 	Contracts    ContractsClient
@@ -17,12 +19,14 @@ type Client struct {
 	Stats        StatsClient
 }
 
+// Params are construction parameters for the etherscan Client.
 type Params struct {
 	APIKey  string
 	BaseURL *url.URL
 	HTTP    *http.Client
 }
 
+// New constructs a new etherscan Client.
 func New(params *Params) *Client {
 	api := newAPIClient(params)
 	return &Client{

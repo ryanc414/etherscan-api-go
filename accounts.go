@@ -12,19 +12,22 @@ import (
 
 const accountModule = "account"
 
+// AccountsClient is the client for accounts actions.
 type AccountsClient struct {
 	api *apiClient
 }
 
+// ETHBalanceRequest contains the request parameters for GetETHBalance.
 type ETHBalanceRequest struct {
 	Address common.Address
 	Tag     BlockParameter
 }
 
-// BlockParameter is an enumeration of allowed block parameters
+// BlockParameter is an enumeration of allowed block parameters.
 // ENUM(latest,earliest,pending)
 type BlockParameter int32
 
+// GetETHBalance returns the Ether balance for a single address.
 func (c *AccountsClient) GetETHBalance(
 	ctx context.Context, req *ETHBalanceRequest,
 ) (*big.Int, error) {
@@ -42,16 +45,19 @@ func (c *AccountsClient) GetETHBalance(
 	return result.unwrap(), nil
 }
 
+// MultiETHBalancesRequest contains the request parameters for GetMultiETHBalances.
 type MultiETHBalancesRequest struct {
 	Addresses []common.Address `etherscan:"address"`
 	Tag       BlockParameter
 }
 
+// MultiBalanceResponse contains the Ether balance for a specific address.
 type MultiBalanceResponse struct {
 	Account common.Address
 	Balance *big.Int
 }
 
+// GetMultiETHBalances returns the balance of accounts from a list of addresses.
 func (c *AccountsClient) GetMultiETHBalances(
 	ctx context.Context, req *MultiETHBalancesRequest,
 ) (result []MultiBalanceResponse, err error) {
@@ -64,6 +70,7 @@ func (c *AccountsClient) GetMultiETHBalances(
 	return result, err
 }
 
+// ListTxRequest contains the request parameters for ListNormalTransactions.
 type ListTxRequest struct {
 	Address    common.Address
 	StartBlock uint64
@@ -75,6 +82,8 @@ type ListTxRequest struct {
 // ENUM(asc,desc)
 type SortingPreference int32
 
+// TransactionInfo conatins the base transaction info included in multiple
+// response types.
 type TransactionInfo struct {
 	BlockNumber     uint64    `etherscan:"blockNumber"`
 	Timestamp       time.Time `etherscan:"timeStamp"`
@@ -88,6 +97,7 @@ type TransactionInfo struct {
 	IsError         bool   `etherscan:"isError,num"`
 }
 
+// NormalTxInfo contains information on normal transactions returned by ListNormalTransactions.
 type NormalTxInfo struct {
 	TransactionInfo
 	Hash              common.Hash
@@ -100,6 +110,7 @@ type NormalTxInfo struct {
 	Confirmations     uint64
 }
 
+// InternalTxInfo contains information on internal transactions.
 type InternalTxInfo struct {
 	TransactionInfo
 	Hash    common.Hash
@@ -107,11 +118,14 @@ type InternalTxInfo struct {
 	Type    string
 }
 
+// InternalTxInfoByHash contains information on internal transactions returned
+// by GetInternalTxsByHash
 type InternalTxInfoByHash struct {
 	TransactionInfo
 	Type string
 }
 
+// ListNormalTransactions returns the list of transactions performed by an address.
 func (c *AccountsClient) ListNormalTransactions(
 	ctx context.Context, req *ListTxRequest,
 ) (result []NormalTxInfo, err error) {
@@ -125,6 +139,7 @@ func (c *AccountsClient) ListNormalTransactions(
 	return result, err
 }
 
+// ListInternalTransactions returns the list of internal transactions performed by an address.
 func (c *AccountsClient) ListInternalTransactions(
 	ctx context.Context, req *ListTxRequest,
 ) (result []InternalTxInfo, err error) {
@@ -138,6 +153,7 @@ func (c *AccountsClient) ListInternalTransactions(
 	return result, err
 }
 
+// GetInternalTxsByHash returns the list of internal transactions performed within a transaction.
 func (c *AccountsClient) GetInternalTxsByHash(
 	ctx context.Context, hash common.Hash,
 ) (result []InternalTxInfoByHash, err error) {
@@ -152,12 +168,14 @@ func (c *AccountsClient) GetInternalTxsByHash(
 	return result, err
 }
 
+// BlockRangeRequest contains the request parameters for GetInternalTxsByBlockRange.
 type BlockRangeRequest struct {
 	StartBlock uint64
 	EndBlock   uint64
 	Sort       SortingPreference
 }
 
+// GetInternalTxsByBlockRange returns the list of internal transactions performed within a block range.
 func (c *AccountsClient) GetInternalTxsByBlockRange(
 	ctx context.Context,
 	req *BlockRangeRequest,
@@ -172,12 +190,14 @@ func (c *AccountsClient) GetInternalTxsByBlockRange(
 	return result, err
 }
 
+// TokenTransferRequest
 type TokenTransfersRequest struct {
 	Address         common.Address
 	ContractAddress common.Address
 	Sort            SortingPreference
 }
 
+// BaseTokenTransferInfo contains common token transfer information.
 type BaseTokenTransferInfo struct {
 	BlockNumber       uint64    `etherscan:"blockNumber"`
 	Timestamp         time.Time `etherscan:"timeStamp"`
@@ -198,11 +218,13 @@ type BaseTokenTransferInfo struct {
 	Confirmations     uint64
 }
 
+// TokenTransferInfo contains information on an ERC20 token transfer.
 type TokenTransferInfo struct {
 	BaseTokenTransferInfo
 	Value *big.Int
 }
 
+// ListTokenTransfers lists the ERC20 token transfers for an address.
 func (c *AccountsClient) ListTokenTransfers(
 	ctx context.Context, req *TokenTransfersRequest,
 ) (result []TokenTransferInfo, err error) {
@@ -216,17 +238,20 @@ func (c *AccountsClient) ListTokenTransfers(
 	return result, err
 }
 
+// ListNFTTransferRequest contains the request parameters for ListNFTTransfers.
 type ListNFTTransferRequest struct {
 	Address         *common.Address
 	ContractAddress *common.Address
 	Sort            SortingPreference
 }
 
+// NFTTransferInfo contains the information on an NFT token transfer.
 type NFTTransferInfo struct {
 	BaseTokenTransferInfo
 	TokenID string `etherscan:"tokenID"`
 }
 
+// ListNFTTransfers lists the NFT token transfers for an address.
 func (c *AccountsClient) ListNFTTransfers(
 	ctx context.Context, req *ListNFTTransferRequest,
 ) (result []NFTTransferInfo, err error) {
@@ -244,6 +269,7 @@ func (c *AccountsClient) ListNFTTransfers(
 	return result, err
 }
 
+// ListBlocksRequest contains the request parameters for ListBlocksMined.
 type ListBlocksRequest struct {
 	Address common.Address
 	Type    BlockType `etherscan:"blocktype"`
@@ -253,12 +279,14 @@ type ListBlocksRequest struct {
 // ENUM(blocks,uncles)
 type BlockType int32
 
+// BlockInfo contains information on a specific ethereum block.
 type BlockInfo struct {
 	BlockNumber uint64    `etherscan:"blockNumber"`
 	Timestamp   time.Time `etherscan:"timeStamp"`
 	BlockReward *big.Int  `etherscan:"blockReward"`
 }
 
+// ListBlocksMined lists blocks that were mined by a specific address.
 func (c *AccountsClient) ListBlocksMined(
 	ctx context.Context, req *ListBlocksRequest,
 ) (result []BlockInfo, err error) {
@@ -272,11 +300,14 @@ func (c *AccountsClient) ListBlocksMined(
 	return result, err
 }
 
+// HistoricalETHRequest contains the request parameters for GetHistoricalETHBalance.
 type HistoricalETHRequest struct {
 	Address     common.Address
 	BlockNumber uint64 `etherscan:"blockno"`
 }
 
+// GetHistoricalETHBalance retrieves the ETH balance for an address at a
+// particular block number.
 func (c *AccountsClient) GetHistoricalETHBalance(
 	ctx context.Context, req *HistoricalETHRequest,
 ) (result *big.Int, err error) {
