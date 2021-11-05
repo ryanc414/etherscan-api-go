@@ -6,12 +6,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// ContractsClient is the client for contracts actions.
 type ContractsClient struct {
 	api *apiClient
 }
 
 const contractsModule = "contract"
 
+// GetContractABI returns the contract ABI as a JSON string.
 func (c ContractsClient) GetContractABI(
 	ctx context.Context, address common.Address,
 ) (result string, err error) {
@@ -26,6 +28,7 @@ func (c ContractsClient) GetContractABI(
 	return result, err
 }
 
+// ContractInfo contains information on a contract's source code.
 type ContractInfo struct {
 	SourceCode           string `etherscan:"SourceCode"`
 	ABI                  string `etherscan:"ABI"`
@@ -42,6 +45,7 @@ type ContractInfo struct {
 	SwarmSource          string `etherscan:"SwarmSource"`
 }
 
+// GetContractSourceCode returns the Solidity source code of a verified smart contract.
 func (c ContractsClient) GetContractSourceCode(
 	ctx context.Context, address common.Address,
 ) (result []ContractInfo, err error) {
