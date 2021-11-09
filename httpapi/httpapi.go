@@ -9,11 +9,15 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/ryanc414/etherscan-api-go/marshallers"
 )
 
-const rspStatusOK = "1"
+const (
+	defaultAPIBase = "https://api.etherscan.io"
+	rspStatusOK    = "1"
+)
 
 // Params are construction parameters for the API client.
 type Params struct {
@@ -28,7 +32,7 @@ type APIClient struct {
 }
 
 func New(params *Params) *APIClient {
-	apiURL := *params.BaseURL
+	apiURL := getBaseURL(params)
 	apiURL.Path = path.Join(apiURL.Path, "api")
 
 	q := apiURL.Query()
@@ -44,6 +48,19 @@ func New(params *Params) *APIClient {
 		apiURL: apiURL,
 		http:   httpClient,
 	}
+}
+
+func getBaseURL(params *Params) url.URL {
+	if params.BaseURL != nil {
+		return *params.BaseURL
+	}
+
+	u, err := url.Parse(defaultAPIBase)
+	if err != nil {
+		panic(errors.Wrap(err, "failed to parse default base URL"))
+	}
+
+	return *u
 }
 
 type CallParams struct {
