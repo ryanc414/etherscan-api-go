@@ -7,17 +7,16 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/pkg/errors"
 )
 
+// ProxyClient is the client for ethereum proxy actions.
 type ProxyClient struct {
 	api *apiClient
 }
 
 const proxyModule = "proxy"
 
-var errNotImplemented = errors.New("not implemented")
-
+// BlockNumber returns the current block number.
 func (c *ProxyClient) BlockNumber(ctx context.Context) (uint64, error) {
 	var result hexutil.Uint64
 	err := c.api.call(ctx, &callParams{
@@ -29,6 +28,7 @@ func (c *ProxyClient) BlockNumber(ctx context.Context) (uint64, error) {
 	return uint64(result), err
 }
 
+// ProxyBaseBlockInfo contains common information on a block.
 type ProxyBaseBlockInfo struct {
 	Difficulty       *big.Int `etherscan:"difficulty,hex"`
 	ExtraData        []byte   `etherscan:"extraData,hex"`
@@ -50,6 +50,8 @@ type ProxyBaseBlockInfo struct {
 	Uncles           []common.Hash
 }
 
+// ProxyFullBlockInfo contains the full information on a block and its
+// transactions.
 type ProxyFullBlockInfo struct {
 	ProxyBaseBlockInfo
 	TotalDifficulty *big.Int `etherscan:"totalDifficulty,hex"`
@@ -61,6 +63,7 @@ type getBlockByNumRequest struct {
 	Boolean bool
 }
 
+// GetBlockByNumberFull returns full information about a block by block number.
 func (c *ProxyClient) GetBlockByNumberFull(
 	ctx context.Context, number uint64,
 ) (*ProxyFullBlockInfo, error) {
@@ -77,12 +80,15 @@ func (c *ProxyClient) GetBlockByNumberFull(
 	return result, err
 }
 
+// ProxySummaryBlockInfo contains summary information on a block, including
+// a slice of transaction hashes.
 type ProxySummaryBlockInfo struct {
 	ProxyBaseBlockInfo
 	TotalDifficulty *big.Int `etherscan:"totalDifficulty,hex"`
 	Transactions    []common.Hash
 }
 
+// GetBlockByNumberSummary returns summary information about a block by block number.
 func (c *ProxyClient) GetBlockByNumberSummary(
 	ctx context.Context, number uint64,
 ) (*ProxySummaryBlockInfo, error) {
@@ -99,16 +105,19 @@ func (c *ProxyClient) GetBlockByNumberSummary(
 	return result, err
 }
 
+// BlockNumberAndIndex uniquely identifies a transaction's position in a block.
 type BlockNumberAndIndex struct {
 	Number uint64 `etherscan:"tag,hex"`
 	Index  uint32 `etherscan:"index,hex"`
 }
 
+// ProxyUncleBlockInfo contains information about an uncle block.
 type ProxyUncleBlockInfo struct {
 	ProxyBaseBlockInfo
 	BaseFeePerGas *big.Int `etherscan:"baseFeePerGas,hex"`
 }
 
+// GetUncleByBlockNumberAndIndex returns information about a uncle by block number.
 func (c *ProxyClient) GetUncleByBlockNumberAndIndex(
 	ctx context.Context, req *BlockNumberAndIndex,
 ) (*ProxyUncleBlockInfo, error) {
@@ -128,6 +137,7 @@ type blockTxCountRequest struct {
 	Tag uint64 `etherscan:"tag,hex"`
 }
 
+// GetBlockTransactionCountByNumber returns the number of transactions in a block.
 func (c *ProxyClient) GetBlockTransactionCountByNumber(
 	ctx context.Context, number uint64,
 ) (uint32, error) {
@@ -144,6 +154,7 @@ func (c *ProxyClient) GetBlockTransactionCountByNumber(
 	return uint32(result), err
 }
 
+// ProxyTransactionInfo contains information about a transaction.
 type ProxyTransactionInfo struct {
 	BlockHash        common.Hash `etherscan:"blockHash"`
 	BlockNumber      uint64      `etherscan:"blockNumber,hex"`
@@ -162,6 +173,7 @@ type ProxyTransactionInfo struct {
 	S                *big.Int `etherscan:"s,hex"`
 }
 
+// GetTransactionsByHash returns the information about a transaction requested by transaction hash.
 func (c *ProxyClient) GetTransactionByHash(
 	ctx context.Context, txHash common.Hash,
 ) (*ProxyTransactionInfo, error) {
@@ -178,6 +190,8 @@ func (c *ProxyClient) GetTransactionByHash(
 	return result, err
 }
 
+// GetTransactionByBlockNumberAndIndex returns information about a transaction
+// by block number and transaction index position.
 func (c *ProxyClient) GetTransactionByBlockNumberAndIndex(
 	ctx context.Context, req *BlockNumberAndIndex,
 ) (*ProxyTransactionInfo, error) {
@@ -192,11 +206,13 @@ func (c *ProxyClient) GetTransactionByBlockNumberAndIndex(
 	return result, err
 }
 
+// TxCountRequest contains request parameters for GetTransactionCount.
 type TxCountRequest struct {
 	Address common.Address
 	Tag     BlockParameter
 }
 
+// GetTransactionCount returns the number of transactions performed by an address.
 func (c *ProxyClient) GetTransactionCount(
 	ctx context.Context, req *TxCountRequest,
 ) (uint64, error) {
@@ -211,6 +227,7 @@ func (c *ProxyClient) GetTransactionCount(
 	return uint64(result), err
 }
 
+// SendRawTransaction submits a pre-signed transaction for broadcast to the Ethereum network.
 func (c *ProxyClient) SendRawTransaction(
 	ctx context.Context, data []byte,
 ) (result common.Hash, err error) {
@@ -225,6 +242,7 @@ func (c *ProxyClient) SendRawTransaction(
 	return result, err
 }
 
+// ProxyTransactionReceipt describes a transaction receipt.
 type ProxyTransactionReceipt struct {
 	BlockHash         common.Hash     `etherscan:"blockHash"`
 	BlockNumber       uint64          `etherscan:"blockNumber,hex"`
@@ -242,6 +260,7 @@ type ProxyTransactionReceipt struct {
 	Type              uint32      `etherscan:"type,hex"`
 }
 
+// ProxyTxLog describes a transaction log.
 type ProxyTxLog struct {
 	Address             common.Address
 	BlockHash           common.Hash `etherscan:"blockHash"`
@@ -256,20 +275,7 @@ type ProxyTxLog struct {
 	Type                string
 }
 
-type proxyTxLogResult struct {
-	Address             common.Address `json:"address"`
-	BlockHash           common.Hash    `json:"blockHash"`
-	BlockNumber         hexutil.Uint64 `json:"blockNumber"`
-	Data                hexutil.Bytes  `json:"data"`
-	LogIndex            hexutil.Uint   `json:"logIndex"`
-	Removed             bool           `json:"removed"`
-	Topics              []common.Hash  `json:"topics"`
-	TransactionHash     common.Hash    `json:"transactionHash"`
-	TransactionIndex    hexutil.Uint   `json:"transactionIndex"`
-	TransactionLogIndex hexutil.Uint   `json:"transactionLogIndex"`
-	Type                string         `json:"type"`
-}
-
+// GetTransactionReceipt returns the receipt of a transaction by transaction hash.
 func (c *ProxyClient) GetTransactionReceipt(
 	ctx context.Context, txHash common.Hash,
 ) (*ProxyTransactionReceipt, error) {
@@ -286,12 +292,14 @@ func (c *ProxyClient) GetTransactionReceipt(
 	return result, err
 }
 
+// CallRequest contains the request parameters for Call.
 type CallRequest struct {
 	To   common.Address
 	Data []byte
 	Tag  BlockParameter
 }
 
+// Call executes a new message call immediately without creating a transaction on the block chain.
 func (c *ProxyClient) Call(
 	ctx context.Context, req *CallRequest,
 ) ([]byte, error) {
@@ -307,11 +315,13 @@ func (c *ProxyClient) Call(
 	return result, err
 }
 
+// GetCodeRequest contains the request parameters for GetCode.
 type GetCodeRequest struct {
 	Address common.Address
 	Tag     BlockParameter
 }
 
+// GetCode returns code at a given address.
 func (c *ProxyClient) GetCode(
 	ctx context.Context, req *GetCodeRequest,
 ) ([]byte, error) {
@@ -326,12 +336,14 @@ func (c *ProxyClient) GetCode(
 	return result, err
 }
 
+// GetStorageRequest contains the request parameters for GetStorageAt.
 type GetStorageRequest struct {
 	Address  common.Address
 	Position uint32 `etherscan:"position,hex"`
 	Tag      BlockParameter
 }
 
+// GetStorageAt returns the value from a storage position at a given address.
 func (c *ProxyClient) GetStorageAt(
 	ctx context.Context, req *GetStorageRequest,
 ) ([]byte, error) {
@@ -346,6 +358,7 @@ func (c *ProxyClient) GetStorageAt(
 	return result, err
 }
 
+// GasPrice returns the current price per gas in wei.
 func (c *ProxyClient) GasPrice(ctx context.Context) (*big.Int, error) {
 	var result hexutil.Big
 	err := c.api.call(ctx, &callParams{
@@ -360,6 +373,7 @@ func (c *ProxyClient) GasPrice(ctx context.Context) (*big.Int, error) {
 	return result.ToInt(), nil
 }
 
+// EstimateGasRequest contains the request parameters for EstimateGas.
 type EstimateGasRequest struct {
 	Data     []byte
 	To       common.Address
@@ -368,6 +382,7 @@ type EstimateGasRequest struct {
 	GasPrice *big.Int `etherscan:"gasPrice,hex"`
 }
 
+// EstimateGas makes a call or transaction, which won't be added to the blockchain and returns the used gas.
 func (c *ProxyClient) EstimateGas(
 	ctx context.Context, req *EstimateGasRequest,
 ) (*big.Int, error) {

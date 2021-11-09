@@ -12,12 +12,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+// LogsClient is the client for logs related actions.
 type LogsClient struct {
 	api *apiClient
 }
 
 const logsModule = "logs"
 
+// LogsRequest contains the request parameters for GetLogs.
 type LogsRequest struct {
 	FromBlock   LogsBlockParam
 	ToBlock     LogsBlockParam
@@ -80,6 +82,7 @@ func (req *LogsRequest) addCompParams(params map[string]string) error {
 	return nil
 }
 
+// LogsBlockParam contain block-related parameters.
 type LogsBlockParam struct {
 	Number uint64
 	Latest bool
@@ -97,6 +100,7 @@ func (b LogsBlockParam) toParam() (string, error) {
 	return strconv.FormatUint(b.Number, 10), nil
 }
 
+// TopicComparison contains parameters for comparing two topics.
 type TopicComparison struct {
 	Topics   [2]uint8
 	Operator ComparisonOperator
@@ -117,6 +121,7 @@ func (c *TopicComparison) toParam() (string, string, error) {
 // ENUM(and,or)
 type ComparisonOperator int32
 
+// LogResponse contains information on an ethereum log.
 type LogResponse struct {
 	Address          common.Address
 	BlockNumber      uint64 `etherscan:"blockNumber,hex"`
@@ -130,6 +135,7 @@ type LogResponse struct {
 	TransactionIndex uint32      `etherscan:"transactionIndex,hex"`
 }
 
+// GetLogs provides an alternative to the native eth_getLogs.
 func (c *LogsClient) GetLogs(ctx context.Context, req *LogsRequest) ([]LogResponse, error) {
 	params, err := req.toParams()
 	if err != nil {
