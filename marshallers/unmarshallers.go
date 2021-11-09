@@ -169,30 +169,6 @@ func (t dateTimestamp) unwrap() time.Time {
 	return time.Time(t)
 }
 
-type floatStr float64
-
-func (f *floatStr) UnmarshalJSON(data []byte) error {
-	var rawStr string
-	if err := json.Unmarshal(data, &rawStr); err != nil {
-		return err
-	}
-	if rawStr == "" {
-		return nil
-	}
-
-	val, err := strconv.ParseFloat(rawStr, 64)
-	if err != nil {
-		return err
-	}
-
-	*f = floatStr(val)
-	return nil
-}
-
-func (f floatStr) unwrap() float64 {
-	return float64(f)
-}
-
 func UnmarshalResponse(data []byte, v interface{}) error {
 	rspType := reflect.TypeOf(v)
 	if rspType.Kind() != reflect.Ptr {
@@ -223,13 +199,13 @@ func UnmarshalResponse(data []byte, v interface{}) error {
 }
 
 func unmarshalSliceRsp(data []byte, v reflect.Value, info *tagInfo) error {
+	if info != nil && info.sep {
+		return unmarshalStringSepSlice(data, v, ",", info)
+	}
+
 	var u json.Unmarshaler
 	if reflect.PtrTo(v.Type().Elem()).Implements(reflect.TypeOf(&u).Elem()) {
 		return json.Unmarshal(data, v.Addr().Interface())
-	}
-
-	if info != nil && info.sep {
-		return unmarshalStringSepSlice(data, v, ",")
 	}
 
 	var rawSlice []json.RawMessage
@@ -252,7 +228,7 @@ func unmarshalSliceRsp(data []byte, v reflect.Value, info *tagInfo) error {
 	return nil
 }
 
-func unmarshalStringSepSlice(data []byte, v reflect.Value, sep string) error {
+func unmarshalStringSepSlice(data []byte, v reflect.Value, sep string, info *tagInfo) error {
 	var str string
 	if err := json.Unmarshal(data, &str); err != nil {
 		return errors.Wrap(err, "while unmarshalling as string")
@@ -265,7 +241,7 @@ func unmarshalStringSepSlice(data []byte, v reflect.Value, sep string) error {
 		el := slice.Index(i)
 
 		val := fmt.Sprintf("\"%s\"", substrs[i])
-		if err := setFieldValue(el, []byte(val), nil); err != nil {
+		if err := setFieldValue(el, []byte(val), info); err != nil {
 			return err
 		}
 	}
@@ -425,11 +401,6 @@ func getTypeUnmarshler(
 
 		return new(UintStr), func(v interface{}) {
 			field.SetUint(uint64(*v.(*UintStr)))
-		}
-
-	case reflect.Float32, reflect.Float64:
-		return new(floatStr), func(v interface{}) {
-			field.SetFloat(v.(*floatStr).unwrap())
 		}
 
 	case reflect.Bool:

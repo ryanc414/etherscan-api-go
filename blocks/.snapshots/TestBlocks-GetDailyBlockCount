@@ -2,14 +2,14 @@
   (blocks.BlockCount) {
     DailyBlockRewards: (blocks.DailyBlockRewards) {
       Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
-      BlockRewardsETH: (float64) 14929.46469087059
+      BlockRewardsETH: (decimal.Decimal) 14929.464690870590355682
     },
     BlockCount: (uint32) 4848
   },
   (blocks.BlockCount) {
     DailyBlockRewards: (blocks.DailyBlockRewards) {
       Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
-      BlockRewardsETH: (float64) 12808.485512162357
+      BlockRewardsETH: (decimal.Decimal) 12808.485512162356907132
     },
     BlockCount: (uint32) 4366
   }

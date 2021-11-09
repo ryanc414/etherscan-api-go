@@ -8,6 +8,7 @@ import (
 	ecommon "github.com/ryanc414/etherscan-api-go/common"
 	"github.com/ryanc414/etherscan-api-go/httpapi"
 	"github.com/ryanc414/etherscan-api-go/marshallers"
+	"github.com/shopspring/decimal"
 )
 
 // GasClient is the client for gas actions.
@@ -44,12 +45,12 @@ func (c *GasClient) EstimateConfirmationTime(
 
 // GasPrices describes the current recommended gas prices.
 type GasPrices struct {
-	LastBlock       uint64    `etherscan:"LastBlock"`
-	SafeGasPrice    uint64    `etherscan:"SafeGasPrice"`
-	ProposeGasPrice uint64    `etherscan:"ProposeGasPrice"`
-	FastGasPrice    uint64    `etherscan:"FastGasPrice"`
-	SuggestBaseFee  float64   `etherscan:"suggestBaseFee"`
-	GasUsedRatio    []float64 `etherscan:"gasUsedRatio,sep"`
+	LastBlock       uint64            `etherscan:"LastBlock"`
+	SafeGasPrice    uint64            `etherscan:"SafeGasPrice"`
+	ProposeGasPrice uint64            `etherscan:"ProposeGasPrice"`
+	FastGasPrice    uint64            `etherscan:"FastGasPrice"`
+	SuggestBaseFee  decimal.Decimal   `etherscan:"suggestBaseFee"`
+	GasUsedRatio    []decimal.Decimal `etherscan:"gasUsedRatio,sep"`
 }
 
 // GetGasOracle returns the current Safe, Proposed and Fast gas prices.

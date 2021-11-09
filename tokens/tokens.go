@@ -8,6 +8,7 @@ import (
 	ecommon "github.com/ryanc414/etherscan-api-go/common"
 	"github.com/ryanc414/etherscan-api-go/httpapi"
 	"github.com/ryanc414/etherscan-api-go/marshallers"
+	"github.com/shopspring/decimal"
 )
 
 // TokensClient is the client for tokens actions.
@@ -132,7 +133,7 @@ type TokenInfo struct {
 	LinkedIn        string
 	Discord         string
 	Whitepaper      string
-	TokenPriceUSD   float64 `etherscan:"tokenPriceUSD"`
+	TokenPriceUSD   decimal.Decimal `etherscan:"tokenPriceUSD"`
 }
 
 // GetTokenInfo returns project information and social media links of an ERC-20/ERC-721 token.

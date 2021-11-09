@@ -10,6 +10,7 @@ import (
 	ecommon "github.com/ryanc414/etherscan-api-go/common"
 	"github.com/ryanc414/etherscan-api-go/httpapi"
 	"github.com/ryanc414/etherscan-api-go/marshallers"
+	"github.com/shopspring/decimal"
 )
 
 const blocksModule = "block"
@@ -55,10 +56,10 @@ func (c *BlocksClient) GetBlockRewards(
 
 // BlockCountdown contains information on the estimated time until a block is mined.
 type BlockCountdown struct {
-	CurrentBlock      uint64  `etherscan:"CurrentBlock"`
-	CountdownBlock    uint64  `etherscan:"CountdownBlock"`
-	RemainingBlock    uint64  `etherscan:"RemainingBlock"`
-	EstimateTimeInSec float64 `etherscan:"EstimateTimeInSec"`
+	CurrentBlock      uint64          `etherscan:"CurrentBlock"`
+	CountdownBlock    uint64          `etherscan:"CountdownBlock"`
+	RemainingBlock    uint64          `etherscan:"RemainingBlock"`
+	EstimateTimeInSec decimal.Decimal `etherscan:"EstimateTimeInSec"`
 }
 
 // GetBlockCountdown returns the estimated time remaining, in seconds, until a certain block is mined.
@@ -151,8 +152,8 @@ func (c *BlocksClient) GetDailyBlockCount(
 // DailyBlockRewards contains information on the total block rewards distributed
 // to miners on a particular day.
 type DailyBlockRewards struct {
-	Timestamp       time.Time `etherscan:"unixTimeStamp"`
-	BlockRewardsETH float64   `etherscan:"blockRewards_Eth"`
+	Timestamp       time.Time       `etherscan:"unixTimeStamp"`
+	BlockRewardsETH decimal.Decimal `etherscan:"blockRewards_Eth"`
 }
 
 // GetDailyBlockRewards returns the amount of block rewards distributed to miners daily.
@@ -172,8 +173,8 @@ func (c *BlocksClient) GetDailyBlockRewards(
 // DailyBlockTime contains information on the average time to mine a block on a
 // particular day.
 type DailyBlockTime struct {
-	Timestamp        time.Time `etherscan:"unixTimeStamp"`
-	BlockTimeSeconds float64   `etherscan:"blockTime_sec"`
+	Timestamp        time.Time       `etherscan:"unixTimeStamp"`
+	BlockTimeSeconds decimal.Decimal `etherscan:"blockTime_sec"`
 }
 
 // GetDailyAverageBlockTime returns the daily average of time needed for a block
@@ -194,9 +195,9 @@ func (c *BlocksClient) GetDailyAverageBlockTime(
 // DailyUnclesCount contains information on uncle blocks mined in a particular
 // day.
 type DailyUnclesCount struct {
-	Timestamp            time.Time `etherscan:"unixTimeStamp"`
-	UncleBlockCount      uint32    `etherscan:"uncleBlockCount,num"`
-	UncleBlockRewardsETH float64   `etherscan:"uncleBlockRewards_Eth"`
+	Timestamp            time.Time       `etherscan:"unixTimeStamp"`
+	UncleBlockCount      uint32          `etherscan:"uncleBlockCount,num"`
+	UncleBlockRewardsETH decimal.Decimal `etherscan:"uncleBlockRewards_Eth"`
 }
 
 // GetDailyUnclesCount returns the number of 'Uncle' blocks mined daily and the

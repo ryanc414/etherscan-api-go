@@ -22,6 +22,6 @@
     LinkedIn: (string) "",
     Discord: (string) (len=37) "https://discordapp.com/invite/DKGr2pW",
     Whitepaper: (string) "",
-    TokenPriceUSD: (float64) 0
+    TokenPriceUSD: (decimal.Decimal) 0
   }
 }
