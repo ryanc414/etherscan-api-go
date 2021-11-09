@@ -8,10 +8,13 @@ import (
 
 const gasModule = "gastracker"
 
+// GasClient is the client for gas actions.
 type GasClient struct {
 	api *apiClient
 }
 
+// EstimateConfirmationTime returns the estimated time, in seconds, for a
+// transaction to be confirmed on the blockchain.
 func (c *GasClient) EstimateConfirmationTime(
 	ctx context.Context, gasPriceGwei int64,
 ) (uint64, error) {
@@ -37,6 +40,7 @@ func (c *GasClient) EstimateConfirmationTime(
 	return result.unwrap(), nil
 }
 
+// GasPrices describes the current recommended gas prices.
 type GasPrices struct {
 	LastBlock       uint64    `etherscan:"LastBlock"`
 	SafeGasPrice    uint64    `etherscan:"SafeGasPrice"`
@@ -46,6 +50,7 @@ type GasPrices struct {
 	GasUsedRatio    []float64 `etherscan:"gasUsedRatio,sep"`
 }
 
+// GetGasOracle returns the current Safe, Proposed and Fast gas prices.
 func (c *GasClient) GetGasOracle(ctx context.Context) (*GasPrices, error) {
 	result := new(GasPrices)
 	err := c.api.call(ctx, &callParams{
@@ -60,11 +65,13 @@ func (c *GasClient) GetGasOracle(ctx context.Context) (*GasPrices, error) {
 	return result, nil
 }
 
+// AvgGasLimit describes the average gas limit on a particular day.
 type AvgGasLimit struct {
 	Timestamp time.Time `etherscan:"unixTimeStamp"`
 	GasLimit  uint64    `etherscan:"gasLimit"`
 }
 
+// GetDailyAvgGasLimit returns the historical daily average gas limit of the Ethereum network.
 func (c *GasClient) GetDailyAvgGasLimit(
 	ctx context.Context, req *DateRange,
 ) (result []AvgGasLimit, err error) {
@@ -81,11 +88,14 @@ func (c *GasClient) GetDailyAvgGasLimit(
 	return result, nil
 }
 
+// GasUsed describes the total amount of gas used on a particular day.
 type GasUsed struct {
 	Timestamp time.Time `etherscan:"unixTimeStamp"`
 	GasUsed   *big.Int  `etherscan:"gasUsed"`
 }
 
+// GetDailyTotalGasUsed returns the total amount of gas used daily for
+// transctions on the Ethereum network.
 func (c *GasClient) GetDailyTotalGasUsed(
 	ctx context.Context, req *DateRange,
 ) (result []GasUsed, err error) {
@@ -102,6 +112,7 @@ func (c *GasClient) GetDailyTotalGasUsed(
 	return result, nil
 }
 
+// AvgGasPrice describes the average gas prices on a particular day.
 type AvgGasPrice struct {
 	Timestamp   time.Time `etherscan:"unixTimeStamp"`
 	MaxGasPrice *big.Int  `etherscan:"maxGasPrice_Wei"`
@@ -109,6 +120,7 @@ type AvgGasPrice struct {
 	AvgGasPrice *big.Int  `etherscan:"avgGasPrice_Wei"`
 }
 
+// GetDailyAvgGasPrice returns the daily average gas price used on the Ethereum network.
 func (c *GasClient) GetDailyAvgGasPrice(
 	ctx context.Context, req *DateRange,
 ) (result []AvgGasPrice, err error) {
