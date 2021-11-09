@@ -1,0 +1,10 @@
+([]stats.TxCount) (len=2) {
+  (stats.TxCount) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    TxCount: (*big.Int)(498856)
+  },
+  (stats.TxCount) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    TxCount: (*big.Int)(541458)
+  }
+}

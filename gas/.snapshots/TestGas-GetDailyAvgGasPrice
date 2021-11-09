@@ -1,0 +1,20 @@
+([]gas.AvgGasPrice) (len=3) {
+  (gas.AvgGasPrice) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    MaxGasPrice: (*big.Int)(60814303896257),
+    MinGasPrice: (*big.Int)(432495),
+    AvgGasPrice: (*big.Int)(13234562600)
+  },
+  (gas.AvgGasPrice) {
+    Timestamp: (time.Time) 2019-02-27 00:00:00 +0000 GMT,
+    MaxGasPrice: (*big.Int)(42000000000000),
+    MinGasPrice: (*big.Int)(1000000),
+    AvgGasPrice: (*big.Int)(16334617513)
+  },
+  (gas.AvgGasPrice) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    MaxGasPrice: (*big.Int)(237222222222257),
+    MinGasPrice: (*big.Int)(100000000),
+    AvgGasPrice: (*big.Int)(18834674068)
+  }
+}

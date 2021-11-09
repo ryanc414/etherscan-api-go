@@ -1,0 +1,6 @@
+(*blocks.BlockCountdown)({
+  CurrentBlock: (uint64) 12715477,
+  CountdownBlock: (uint64) 16701588,
+  RemainingBlock: (uint64) 3986111,
+  EstimateTimeInSec: (float64) 5.26166802e+07
+})

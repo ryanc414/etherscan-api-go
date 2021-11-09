@@ -1,0 +1,10 @@
+([]blocks.AverageBlockSize) (len=2) {
+  (blocks.AverageBlockSize) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    BlockSizeBytes: (uint32) 20373
+  },
+  (blocks.AverageBlockSize) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    BlockSizeBytes: (uint32) 25117
+  }
+}

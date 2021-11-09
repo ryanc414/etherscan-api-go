@@ -1,0 +1,14 @@
+([]stats.HistoricalMarketCap) (len=2) {
+  (stats.HistoricalMarketCap) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    Supply: (decimal.Decimal) 104672819.28125,
+    MarketCap: (decimal.Decimal) 11203.1318476721875,
+    Price: (decimal.Decimal) 107.03
+  },
+  (stats.HistoricalMarketCap) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    Supply: (decimal.Decimal) 105048576.40625,
+    MarketCap: (decimal.Decimal) 14317.0704784078125,
+    Price: (decimal.Decimal) 136.29
+  }
+}

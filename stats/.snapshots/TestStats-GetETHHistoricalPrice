@@ -1,0 +1,10 @@
+([]stats.HistoricalETHPrice) (len=2) {
+  (stats.HistoricalETHPrice) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    USDValue: (decimal.Decimal) 107.03
+  },
+  (stats.HistoricalETHPrice) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    USDValue: (decimal.Decimal) 136.29
+  }
+}

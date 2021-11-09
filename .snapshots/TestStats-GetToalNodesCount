@@ -1,4 +1,0 @@
-(*etherscan.NodeCount)({
-  Date: (time.Time) 2021-06-29 00:00:00 +0000 UTC,
-  TotalNodeCount: (uint64) 6413
-})

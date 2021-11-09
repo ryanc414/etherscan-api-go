@@ -1,0 +1,10 @@
+([]stats.DailyTxFee) (len=2) {
+  (stats.DailyTxFee) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    TxFeeETH: (decimal.Decimal) 358.558440870590355682
+  },
+  (stats.DailyTxFee) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    TxFeeETH: (decimal.Decimal) 545.141762162356907132
+  }
+}

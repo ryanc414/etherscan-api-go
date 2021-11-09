@@ -1,0 +1,10 @@
+([]blocks.DailyBlockRewards) (len=2) {
+  (blocks.DailyBlockRewards) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    BlockRewardsETH: (float64) 15300.65625
+  },
+  (blocks.DailyBlockRewards) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    BlockRewardsETH: (float64) 12954.84375
+  }
+}

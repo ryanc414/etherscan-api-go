@@ -1,0 +1,19 @@
+(*blocks.BlockRewards)({
+  BlockNumber: (uint64) 2165403,
+  Timestamp: (time.Time) 2016-08-30 06:12:59 +0100 BST,
+  BlockMiner: (common.Address) (len=20) 0x13A06D3dFe21e0DB5C016C03Ea7D2509f7f8D1e3,
+  BlockReward: (*big.Int)(5314181600000000000),
+  Uncles: ([]blocks.UncleReward) (len=2) {
+    (blocks.UncleReward) {
+      Miner: (common.Address) (len=20) 0xbCDFC35b86BedF72F0Cda046A3c16829A2Ef41d1,
+      UnclePosition: (uint32) 0,
+      BlockReward: (*big.Int)(3750000000000000000)
+    },
+    (blocks.UncleReward) {
+      Miner: (common.Address) (len=20) 0x0d0C9855c722ff0c78F21E43aA275a5B8eA60DcE,
+      UnclePosition: (uint32) 1,
+      BlockReward: (*big.Int)(3750000000000000000)
+    }
+  },
+  UncleInclusionReward: (*big.Int)(312500000000000000)
+})

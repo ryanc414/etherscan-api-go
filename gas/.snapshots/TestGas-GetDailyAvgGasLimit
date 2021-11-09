@@ -1,0 +1,14 @@
+([]gas.AvgGasLimit) (len=3) {
+  (gas.AvgGasLimit) {
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT,
+    GasLimit: (uint64) 8001360
+  },
+  (gas.AvgGasLimit) {
+    Timestamp: (time.Time) 2019-02-27 00:00:00 +0000 GMT,
+    GasLimit: (uint64) 8001071
+  },
+  (gas.AvgGasLimit) {
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT,
+    GasLimit: (uint64) 8001137
+  }
+}

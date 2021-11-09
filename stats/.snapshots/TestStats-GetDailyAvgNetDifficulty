@@ -1,0 +1,10 @@
+([]stats.NetDifficulty) (len=2) {
+  (stats.NetDifficulty) {
+    Difficulty: (decimal.Decimal) 2408.028,
+    Timestamp: (time.Time) 2019-02-01 00:00:00 +0000 GMT
+  },
+  (stats.NetDifficulty) {
+    Difficulty: (decimal.Decimal) 2927.453,
+    Timestamp: (time.Time) 2019-02-28 00:00:00 +0000 GMT
+  }
+}

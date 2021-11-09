@@ -1,0 +1,27 @@
+([]tokens.TokenInfo) (len=1) {
+  (tokens.TokenInfo) {
+    ContractAddress: (common.Address) (len=20) 0x0E3A2A1f2146d86A604adc220b4967A898D7Fe07,
+    TokenName: (string) (len=20) "Gods Unchained Cards",
+    Symbol: (string) (len=4) "CARD",
+    Divisor: (uint) 0,
+    TokenType: (string) (len=6) "ERC721",
+    TotalSupply: (*big.Int)(6962498),
+    BlueCheckmark: (bool) true,
+    Description: (string) (len=91) "A TCG on the Ethereum blockchain that uses NFT's to bring real ownership to in-game assets.",
+    Website: (string) (len=26) "https://godsunchained.com/",
+    Email: (string) "",
+    Blog: (string) (len=29) "https://medium.com/@fuelgames",
+    Reddit: (string) (len=39) "https://www.reddit.com/r/GodsUnchained/",
+    Slack: (string) "",
+    Facebook: (string) (len=39) "https://www.facebook.com/godsunchained/",
+    Twitter: (string) (len=33) "https://twitter.com/godsunchained",
+    BitcoinTalk: (string) "",
+    Github: (string) "",
+    Telegram: (string) "",
+    WeChat: (string) "",
+    LinkedIn: (string) "",
+    Discord: (string) (len=37) "https://discordapp.com/invite/DKGr2pW",
+    Whitepaper: (string) "",
+    TokenPriceUSD: (float64) 0
+  }
+}
