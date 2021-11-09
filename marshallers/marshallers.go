@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -109,8 +108,6 @@ type tagInfo struct {
 	sep   bool
 	comma bool
 }
-
-var sepRegex = regexp.MustCompile(`^sep=(.+)$`)
 
 func parseTag(fieldType reflect.StructField) tagInfo {
 	rawTag := fieldType.Tag.Get("etherscan")

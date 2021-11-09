@@ -18,7 +18,6 @@ type MockServer struct {
 	checkModule bool
 	module      string
 	testDir     string
-	responseDir string
 	srv         *httptest.Server
 }
 

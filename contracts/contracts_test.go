@@ -2,12 +2,10 @@ package contracts_test
 
 import (
 	"context"
-	"io/ioutil"
 	"testing"
 
 	"github.com/bradleyjkemp/cupaloy"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/google/uuid"
 	"github.com/ryanc414/etherscan-api-go"
 	"github.com/ryanc414/etherscan-api-go/testbed"
 	"github.com/stretchr/testify/require"
@@ -45,23 +43,4 @@ func TestContracts(t *testing.T) {
 
 		cupaloy.SnapshotT(t, info)
 	})
-}
-
-type mockContractsAPI struct {
-	apiKey                string
-	getSourceCodeResponse []byte
-}
-
-const getSourceCodeFile = "getSourceCodeResponse.json"
-
-func newMockContractsAPI() (*mockContractsAPI, error) {
-	data, err := ioutil.ReadFile(getSourceCodeFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return &mockContractsAPI{
-		apiKey:                uuid.NewString(),
-		getSourceCodeResponse: data,
-	}, nil
 }
