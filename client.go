@@ -1,4 +1,4 @@
-// etherscan is a client library for the etherscan.io API.
+// Package etherscan is a client library for the etherscan.io API.
 package etherscan
 
 import (

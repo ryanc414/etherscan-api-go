@@ -75,7 +75,7 @@ type ListTxRequest struct {
 	Sort       ecommon.SortingPreference
 }
 
-// TransactionInfo conatins the base transaction info included in multiple
+// TransactionInfo contains the base transaction info included in multiple
 // response types.
 type TransactionInfo struct {
 	BlockNumber     uint64    `etherscan:"blockNumber"`

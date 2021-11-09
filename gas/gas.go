@@ -98,7 +98,7 @@ type GasUsed struct {
 }
 
 // GetDailyTotalGasUsed returns the total amount of gas used daily for
-// transctions on the Ethereum network.
+// transactions on the Ethereum network.
 func (c *GasClient) GetDailyTotalGasUsed(
 	ctx context.Context, req *ecommon.DateRange,
 ) (result []GasUsed, err error) {
